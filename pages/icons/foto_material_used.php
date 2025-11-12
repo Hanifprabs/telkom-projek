@@ -342,7 +342,7 @@ if (isset($_GET['delete_material'])) {
             }
           </style>
 
-       <!-- ====================== FORM EDIT MATERIAL ====================== -->
+     <!-- ====================== FORM EDIT MATERIAL (VERSI SEDERHANA) ====================== -->
 <?php if (isset($editDetail)): ?>
 <div class="row mt-4">
   <div class="col-md-12 grid-margin stretch-card">
@@ -357,109 +357,32 @@ if (isset($_GET['delete_material'])) {
           <input type="hidden" name="user_id" value="<?= $_SESSION['user_id'] ?? '' ?>">
           <input type="hidden" name="teknisi_id" value="<?= htmlspecialchars($editDetail['teknisi_id'] ?? '') ?>">
 
-          <!-- Teknisi & WO -->
-          <div class="row">
-            <div class="col-md-6 form-group">
-              <label>Nama Teknisi</label>
-              <input type="text" class="form-control"
-                     value="<?= htmlspecialchars($editTeknisiLabel ?? '') ?>" disabled>
-            </div>
-            <div class="col-md-6 form-group">
-              <label>Nomor WO</label>
-              <input type="text" name="wo" class="form-control"
-                     value="<?= htmlspecialchars($editDetail['wo'] ?? '') ?>">
-            </div>
+          <!-- Nama Teknisi -->
+          <div class="form-group">
+            <label>Nama Teknisi</label>
+            <input type="text" class="form-control"
+                   value="<?= htmlspecialchars($editTeknisiLabel ?? '') ?>" disabled>
           </div>
 
-          <!-- DC, S-calm, Clam Hook -->
-          <div class="row">
-            <div class="col-md-4 form-group">
-              <label>DC</label>
-              <input type="number" name="dc" class="form-control"
-                     value="<?= htmlspecialchars($editDetail['dc'] ?? '') ?>">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>S-calm</label>
-              <input type="number" name="s_calm" class="form-control"
-                     value="<?= htmlspecialchars($editDetail['s_calm'] ?? '') ?>">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>Clam Hook</label>
-              <input type="number" name="clam_hook" class="form-control"
-                     value="<?= htmlspecialchars($editDetail['clam_hook'] ?? '') ?>">
-            </div>
+          <!-- Nomor WO -->
+          <div class="form-group">
+            <label>Nomor WO</label>
+            <input type="text" name="wo" class="form-control"
+                   value="<?= htmlspecialchars($editDetail['wo'] ?? '') ?>">
           </div>
 
-          <!-- OTP, Prekso, Tiang -->
-          <div class="row">
-            <div class="col-md-4 form-group">
-              <label>OTP</label>
-              <input type="number" name="otp" class="form-control"
-                     value="<?= htmlspecialchars($editDetail['otp'] ?? '') ?>">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>Prekso</label>
-              <input type="number" name="prekso" class="form-control"
-                     value="<?= htmlspecialchars($editDetail['prekso'] ?? '') ?>">
-            </div>
-            <div class="col-md-4 form-group">
-              <label>Tiang</label>
-              <input type="number" name="tiang" class="form-control"
-                     value="<?= htmlspecialchars($editDetail['tiang'] ?? '') ?>">
-            </div>
-          </div>
-
-          <!-- Tanggal dan SOC -->
-          <div class="row">
-            <div class="col-md-6 form-group">
-              <label>Tanggal</label>
-              <?php
-                $tanggal_val = '';
-                if (!empty($editDetail['tanggal'])) {
-                    $ts = strtotime($editDetail['tanggal']);
-                    if ($ts !== false) $tanggal_val = date('Y-m-d', $ts);
-                }
-              ?>
-              <input type="date" name="tanggal" class="form-control"
-                     value="<?= htmlspecialchars($tanggal_val) ?>">
-            </div>
-            <div class="col-md-6 form-group">
-              <label>SOC</label>
-              <div class="input-group">
-                <select name="soc_option" class="form-control">
-                  <option value="">-- Pilih SOC --</option>
-                  <option value="Fuji" <?= ($editDetail['soc_option'] ?? '')=="Fuji" ? "selected":"" ?>>Fuji</option>
-                  <option value="Sum" <?= ($editDetail['soc_option'] ?? '')=="Sum" ? "selected":"" ?>>Sum</option>
-                </select>
-                <input type="number" name="soc_value" class="form-control" placeholder="Nilai"
-                       value="<?= htmlspecialchars($editDetail['soc_value'] ?? '') ?>">
-              </div>
-            </div>
-          </div>
-
-          <!-- Precont -->
-          <div class="form-group mt-2">
-            <label>Precont</label>
-            <div class="row">
-              <?php
-                $editPrecont = [];
-                if (!empty($editDetail['precont_json'])) {
-                    $tmp = json_decode($editDetail['precont_json'], true);
-                    if (is_array($tmp)) $editPrecont = $tmp;
-                }
-                foreach ([50,75,80,100,120,135,150,180] as $val):
-              ?>
-              <div class="col-md-3 col-6 mb-2">
-                <div class="input-group">
-                  <span class="input-group-text small-label"><?= $val ?></span>
-                  <input type="number" 
-                         name="precont[<?= $val ?>]" 
-                         class="form-control" placeholder="Nilai"
-                         value="<?= htmlspecialchars($editPrecont[$val] ?? '') ?>">
-                </div>
-              </div>
-              <?php endforeach; ?>
-            </div>
+          <!-- Tanggal -->
+          <div class="form-group">
+            <label>Tanggal</label>
+            <?php
+              $tanggal_val = '';
+              if (!empty($editDetail['tanggal'])) {
+                  $ts = strtotime($editDetail['tanggal']);
+                  if ($ts !== false) $tanggal_val = date('Y-m-d', $ts);
+              }
+            ?>
+            <input type="date" name="tanggal" class="form-control"
+                   value="<?= htmlspecialchars($tanggal_val) ?>">
           </div>
 
           <!-- Deskripsi Masalah -->
@@ -506,6 +429,7 @@ if (isset($_GET['delete_material'])) {
   </div>
 </div>
 <?php endif; ?>
+
 
 
           <!-- ====================== TABEL DATA ====================== -->

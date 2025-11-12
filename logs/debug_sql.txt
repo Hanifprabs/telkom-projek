@@ -1,0 +1,68 @@
+=============================
+⏰ 2025-11-11 07:39:56
+👤 User ID: 5820531737
+📋 Query: INSERT INTO material_used (
+        user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso,
+        soc_option, soc_value, precont_json, spliter_json, smoove_json,
+        ad_sc, tipe_pekerjaan, tiang, tanggal,
+        precont_option, precont_value, dc_foto, deskripsi_masalah, status_masalah
+    ) VALUES (
+        '5820531737', '4', '2', '2', '2', '2', '2', '2',
+        'sum', '2', '{\"50\":\"2\",\"75\":\"2\",\"80\":\"2\",\"100\":\"2\",\"120\":\"2\",\"135\":\"2\",\"150\":\"2\",\"180\":\"2\"}', '{\"1.2\":\"2\",\"1.4\":\"2\",\"1.8\":\"2\",\"1.16\":\"2\"}', '{\"Kecil\":\"2\",\"Tipe 3\":\"2\"}',
+        '2', 'Maintenance', '2', '2025-11-11',
+        '', '', '', '2', 'Belum Dilihat'
+    )
+📣 Status: ✅ BERHASIL SIMPAN DATA
+=============================
+
+=============================
+⏰ 2025-11-11 07:43:33
+👤 User ID: 5820531737
+📋 Query: INSERT INTO material_used (
+        user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso,
+        soc_option, soc_value, precont_json, spliter_json, smoove_json,
+        ad_sc, tipe_pekerjaan, tiang, tanggal,
+        precont_option, precont_value, dc_foto, deskripsi_masalah, status_masalah
+    ) VALUES (
+        '5820531737', '4', '2', '2', '2', '2', '2', '2',
+        'sum', '2', '{\"50\":\"2\",\"75\":\"2\",\"80\":\"2\",\"100\":\"2\",\"120\":\"2\",\"135\":\"2\",\"150\":\"2\",\"180\":\"2\"}', '{\"1.2\":\"2\",\"1.4\":\"2\",\"1.8\":\"2\",\"1.16\":\"2\"}', '{\"Kecil\":\"2\",\"Tipe 3\":\"2\"}',
+        '2', 'Maintenance', '2', '2025-11-11',
+        '', '', 'uploads/file_5.jpg', 'Percobaan', 'Belum Dilihat'
+    )
+📣 Status: ✅ BERHASIL SIMPAN DATA
+=============================
+
+=============================
+⏰ 2025-11-12 03:14:10
+👤 User ID: 5820531737
+📋 Query: INSERT INTO material_used (
+        user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso,
+        soc_option, soc_value, precont_json, spliter_json, smoove_json,
+        ad_sc, tipe_pekerjaan, tiang, tanggal,
+        precont_option, precont_value, dc_foto, deskripsi_masalah, status_masalah
+    ) VALUES (
+        '5820531737', '4', '3', '4', '5', '6', '2', '1',
+        'sum', '8', '{\"50\":\"4\",\"75\":\"6\",\"80\":\"2\",\"100\":\"3\",\"120\":\"2\",\"135\":\"4\",\"150\":\"3\",\"180\":\"0\"}', '{\"1.2\":\"0\",\"1.4\":\"0\",\"1.8\":\"0\",\"1.16\":\"0\"}', '{\"Kecil\":\"0\",\"Tipe 3\":\"6\"}',
+        '4', 'Konstruksi', '2', '2025-11-12',
+        '', '', 'uploads/file_6.jpg', 'Percobaan kedua', 'Belum Dilihat'
+    )
+📣 Status: ✅ BERHASIL SIMPAN DATA
+=============================
+
+=============================
+⏰ 2025-11-12 03:25:51
+👤 User ID: 5820531737
+📋 Query: INSERT INTO material_used (
+        user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso,
+        soc_option, soc_value, precont_json, spliter_json, smoove_json,
+        ad_sc, tipe_pekerjaan, tiang, tanggal,
+        precont_option, precont_value, dc_foto, deskripsi_masalah, status_masalah
+    ) VALUES (
+        '5820531737', '4', '22333', '2', '4', '4', '2', '4',
+        'fuji', '8', '{\"50\":\"4\",\"75\":\"4\",\"80\":\"2\",\"100\":\"2\",\"120\":\"2\",\"135\":\"0\",\"150\":\"0\",\"180\":\"0\"}', '{\"1.2\":\"0\",\"1.4\":\"0\",\"1.8\":\"7\",\"1.16\":\"0\"}', '{\"Kecil\":\"0\",\"Tipe 3\":\"1\"}',
+        '2', 'Mitratel', '4', '2025-11-12',
+        '', '', 'uploads/file_7.jpg', 'Percobaan berikutnya', 'Belum Dilihat'
+    )
+📣 Status: ✅ BERHASIL SIMPAN DATA
+=============================
+

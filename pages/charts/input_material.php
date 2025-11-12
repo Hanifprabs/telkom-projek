@@ -357,26 +357,21 @@ if (isset($_GET['id'])) {
                 </div>
               </div>
 
-              
-
               <!-- Tanggal & SOC -->
               <div class="row">
                 <!-- Tanggal -->
                 <div class="col-md-6">
-                  <!-- Tanggal -->
-  <div class="form-group">
-    <label class="form-label">Tanggal</label>
-          <?php
-            // prefill tanggal in format YYYY-MM-DD for <input type="date">
-            $tanggal_val = '';
-            if (!empty($editDetail['tanggal'])) {
-                // if stored as Y-m-d, keep; if other format try strtotime
-                $ts = strtotime($editDetail['tanggal']);
-                if ($ts !== false) $tanggal_val = date('Y-m-d', $ts);
-            }
-          ?>
-          <input type="date" name="tanggal" class="form-control" value="<?= htmlspecialchars($tanggal_val) ?>">
-  </div>
+                  <div class="form-group">
+                    <label class="form-label">Tanggal</label>
+                    <?php
+                      $tanggal_val = '';
+                      if (!empty($editDetail['tanggal'])) {
+                          $ts = strtotime($editDetail['tanggal']);
+                          if ($ts !== false) $tanggal_val = date('Y-m-d', $ts);
+                      }
+                    ?>
+                    <input type="date" name="tanggal" class="form-control" value="<?= htmlspecialchars($tanggal_val) ?>">
+                  </div>
                 </div>
 
                 <!-- SOC -->
@@ -392,11 +387,11 @@ if (isset($_GET['id'])) {
                       <input type="number" name="soc_value" class="form-control" placeholder="Nilai" value="">
                     </div>
                   </div>
-                </div>
+                
               </div>
 
               <!-- Precont -->
-              <div class="form-group mt-2">
+              <div class="form-group mt-3">
                 <label>Precont</label>
                 <div class="row">
                   <?php foreach ([50,75,80,100,120,135,150,180] as $val): ?>
@@ -407,6 +402,58 @@ if (isset($_GET['id'])) {
                     </div>
                   </div>
                   <?php endforeach; ?>
+                </div>
+              </div>
+
+              <!-- Spliter -->
+              <div class="form-group mt-3">
+                <label>Spliter</label>
+                <div class="row">
+                  <?php foreach ([1.2, 1.4, 1.8, 1.16] as $val): ?>
+                  <div class="col-md-3 col-6 mb-2">
+                    <div class="input-group">
+                      <span class="input-group-text small-label"><?= $val ?></span>
+                      <input type="number" name="spliter[<?= $val ?>]" class="form-control" placeholder="Nilai" value="">
+                    </div>
+                  </div>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+
+              <!-- Smoove + AD-SC + Tipe Pekerjaan -->
+              <div class="form-group mt-3">
+                <div class="row align-items-end">
+                  <?php foreach (['Kecil', 'Tipe 3'] as $val): ?>
+                    <div class="col-md-3 col-6 mb-2">
+                      <label>Smoove</label>
+                      <div class="input-group">
+                        <span class="input-group-text small-label"><?= $val ?></span>
+                        <input type="number" name="smoove[<?= $val ?>]" class="form-control" placeholder="Nilai">
+                      </div>
+                    </div>
+                  <?php endforeach; ?>
+
+                  <!-- AD-SC -->
+                  <div class="col-md-3 col-6 mb-2">
+                    <label>AD-SC</label>
+                    <div class="input-group">
+                      <span class="input-group-text small-label">AD-SC</span>
+                      <input type="number" name="ad_sc" class="form-control" placeholder="Nilai AD-SC">
+                    </div>
+                  </div>
+
+                  <!-- Tipe Pekerjaan -->
+                  <div class="col-md-3 col-6 mb-2">
+                    <label>Tipe Pekerjaan</label>
+                    <select name="tipe_pekerjaan" class="form-control">
+                      <option value="">-- Pilih Tipe Pekerjaan --</option>
+                      <option value="IOAN">IOAN</option>
+                      <option value="Provisioning">Provisioning</option>
+                      <option value="Maintenance">Maintenance</option>
+                      <option value="Konstruksi">Konstruksi</option>
+                      <option value="Mitratel">Mitratel</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -424,7 +471,10 @@ if (isset($_GET['id'])) {
         </div>
       </div>
     </div>
-  </div>
+</div>
+
+
+
 
   <!-- Notifikasi Berhasil Tambah Data, Update, Delete -->
    <!-- SweetAlert2 -->

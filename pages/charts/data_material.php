@@ -226,234 +226,370 @@ $sql = "SELECT td.id,
 <div class="main-panel">
   <div class="content-wrapper">
 
+<?php
+$editDetail = null;
+$editTeknisiLabel = '';
 
-
-    <?php
-// Ambil data untuk edit jika ada ?edit_detail=id
-$editData = null;
 if (isset($_GET['edit_detail'])) {
     $id = (int) $_GET['edit_detail'];
     $res = $conn->query("SELECT * FROM teknisi_detail WHERE id=$id");
-    $editData = $res->fetch_assoc();
+    $editDetail = $res->fetch_assoc();
+
+    // ✅ Ambil nama teknisi
+    if ($editDetail && isset($editDetail['teknisi_id'])) {
+        $teknisiId = (int) $editDetail['teknisi_id'];
+        $resTeknisi = $conn->query("SELECT namatek, nik FROM teknisi WHERE id=$teknisiId");
+        if ($resTeknisi && $resTeknisi->num_rows > 0) {
+            $t = $resTeknisi->fetch_assoc();
+            $editTeknisiLabel = $t['namatek'] . ' - ' . $t['nik'];
+        }
+    }
 }
 ?>
 
-<!-- ====================== CSS STYLE ====================== -->
-<!-- ====================== CSS STYLE ====================== -->
 <style>
-  /* Table compact */
-  .table-sm td, 
-  .table-sm th {
-    padding: 0.25rem 0.4rem; /* lebih rapat */
-    font-size: 0.75rem;      /* lebih kecil */
-    vertical-align: middle;
-    line-height: 1.2;        /* rapat tapi masih terbaca */
-  }
-
-  /* Header tabel */
-  .table-dark th {
-    font-size: 0.78rem;
-    font-weight: 600;
-  }
-
-  /* SOC rapikan */
-  .soc-cell {
+/* ====================== Form & Input ====================== */
+.card-body, .form-control, .input-group-text, label {
+    font-size: 0.85rem;
+}
+.form-control, .input-group-text {
+    padding: 0.25rem 0.5rem;
+}
+.form-group {
+    margin-bottom: 0.5rem;
+}
+.form-control-sm {
+    height: 32px;
+    font-size: 13px;
+}
+.small-label {
+    font-size: 12px;
+    padding: 2px 8px;
     white-space: nowrap;
-    font-weight: 600;
-    font-size: 0.75rem;
-  }
-
-  /* Precont tampil vertikal */
-  .precont-list {
+}
+.input-group-sm > .form-control {
+    font-size: 13px;
+    height: 32px;
+}
+.row.align-items-end > .col-md-3 {
+    margin-bottom: 8px;
+}
+.precont-list {
     display: flex;
     flex-direction: column;
-    gap: 2px;                /* jarak antar item lebih rapat */
+    gap: 2px;
     align-items: flex-start;
-  }
-  .precont-item {
+}
+.precont-item {
     font-size: 0.72rem;
     background: #f8f9fa;
     border-radius: 4px;
-    padding: 1px 5px;        /* lebih kecil */
+    padding: 1px 5px;
     line-height: 1.1;
-  }
-
-  /* Tombol lebih kecil */
-  .btn-sm {
-    padding: 2px 6px;
-    font-size: 0.72rem;
-    line-height: 1.2;
-  }
+    transition: background 0.2s;
+}
+.precont-item:hover { background: #e2e6ea; }
 </style>
 
-<!-- ====================== FORM EDIT MATERIAL ====================== -->
-<?php if (isset($editDetail)): ?>
+
+<?php if ($editDetail): ?>
   <style>
-  .card-body, .form-control, .input-group-text, label {
-    font-size: 0.85rem;
-  }
-  .form-control, .input-group-text {
-    padding: 0.25rem 0.5rem;
-  }
-  .form-group {
-    margin-bottom: 0.5rem;
-  }
+  .card-body, .form-control, .input-group-text, label { font-size: 0.85rem; }
+  .form-control, .input-group-text { padding: 0.25rem 0.5rem; }
+  .form-group { margin-bottom: 0.5rem; }
 </style>
 
 <div class="row mt-4">
-      <div class="col-md-12 grid-margin stretch-card">
-        <div class="card">
-          <div class="card-body">
+  <div class="col-md-12 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4>✏️ Edit Detail Material Teknisi</h4>
 
-            <h4>✏️ Edit Detail Material Teknisi</h4>
-            <form method="POST">
-              <input type="hidden" name="id" value="<?= htmlspecialchars($editDetail['id'] ?? '') ?>">
+        <form method="POST">
+          <input type="hidden" name="id" value="<?= htmlspecialchars($editDetail['id'] ?? '') ?>">
 
-              <!-- Cari Teknisi & RFS -->
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-group position-relative">
-                    <label>Cari Teknisi</label>
-                    <input type="text" id="teknisiSearch" class="form-control"
-                           placeholder="Ketik nama teknisi..." autocomplete="off"
-                           value="<?= htmlspecialchars($editTeknisiLabel ?? '') ?>">
-                    <input type="hidden" name="teknisi_id" id="teknisiId"
-                           value="<?= htmlspecialchars($editDetail['teknisi_id'] ?? '') ?>">
-                    <div id="teknisiList" class="list-group position-absolute w-100"></div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label>RFS</label>
-                    <input type="text" name="rfs" class="form-control"
-                           value="<?= htmlspecialchars($editDetail['rfs'] ?? '') ?>">
-                  </div>
-                </div>
+          <!-- Cari Teknisi & RFS -->
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group position-relative">
+                <label>Cari Teknisi</label>
+                <input type="text" id="teknisiSearch" class="form-control" placeholder="Ketik nama teknisi..." autocomplete="off"
+                       value="<?= htmlspecialchars($editTeknisiLabel ?? '') ?>">
+                <input type="hidden" name="teknisi_id" id="teknisiId"
+                       value="<?= htmlspecialchars($editDetail['teknisi_id'] ?? '') ?>">
+                <div id="teknisiList" class="list-group position-absolute w-100"></div>
               </div>
-
-              <!-- DC, S-calm, Clam Hook -->
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>DC</label>
-                    <input type="number" name="dc" class="form-control"
-                           value="<?= htmlspecialchars($editDetail['dc'] ?? '') ?>">
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>S-calm</label>
-                    <input type="number" name="s_calm" class="form-control"
-                           value="<?= htmlspecialchars($editDetail['s_calm'] ?? '') ?>">
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>Clam Hook</label>
-                    <input type="number" name="clam_hook" class="form-control"
-                           value="<?= htmlspecialchars($editDetail['clam_hook'] ?? '') ?>">
-                  </div>
-                </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>RFS</label>
+                <input type="text" name="rfs" class="form-control"
+                       value="<?= htmlspecialchars($editDetail['rfs'] ?? '') ?>">
               </div>
-
-              <!-- OTP, Prekso, Tiang -->
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>OTP</label>
-                    <input type="number" name="otp" class="form-control"
-                           value="<?= htmlspecialchars($editDetail['otp'] ?? '') ?>">
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>Prekso</label>
-                    <input type="number" name="prekso" class="form-control"
-                           value="<?= htmlspecialchars($editDetail['prekso'] ?? '') ?>">
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <label>Tiang</label>
-                    <input type="number" name="tiang" class="form-control"
-                           value="<?= htmlspecialchars($editDetail['tiang'] ?? '') ?>">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Tanggal & SOC -->
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label>Tanggal</label>
-                    <?php
-                      $tanggal_val = '';
-                      if (!empty($editDetail['tanggal'])) {
-                        $ts = strtotime($editDetail['tanggal']);
-                        if ($ts !== false) $tanggal_val = date('Y-m-d', $ts);
-                      }
-                    ?>
-                    <input type="date" name="tanggal" class="form-control"
-                           value="<?= htmlspecialchars($tanggal_val) ?>">
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label>SOC</label>
-                    <div class="input-group">
-                      <select name="soc_option" class="form-control">
-                        <option value="">-- Pilih SOC --</option>
-                        <option value="Fuji" <?= ($editDetail['soc_option'] ?? '') == "Fuji" ? "selected" : "" ?>>Fuji</option>
-                        <option value="Sum" <?= ($editDetail['soc_option'] ?? '') == "Sum" ? "selected" : "" ?>>Sum</option>
-                      </select>
-                      <input type="number" name="soc_value" class="form-control" placeholder="Nilai"
-                             value="<?= htmlspecialchars($editDetail['soc_value'] ?? '') ?>">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Precont -->
-              <div class="form-group mt-2">
-                <label>Precont</label>
-                <div class="row">
-                  <?php
-                    $editPrecont = [];
-                    if (!empty($editDetail['precont_json'])) {
-                      $tmp = json_decode($editDetail['precont_json'], true);
-                      if (is_array($tmp)) $editPrecont = $tmp;
-                    }
-                    foreach ([50,75,80,100,120,135,150,180] as $val):
-                  ?>
-                  <div class="col-md-3 col-6 mb-2">
-                    <div class="input-group">
-                      <span class="input-group-text small-label"><?= $val ?></span>
-                      <input type="number" name="precont[<?= $val ?>]" class="form-control" placeholder="Nilai"
-                             value="<?= htmlspecialchars($editPrecont[$val] ?? '') ?>">
-                    </div>
-                  </div>
-                  <?php endforeach; ?>
-                </div>
-              </div>
-
-              <!-- Tombol -->
-              <div class="mt-3 text-end">
-                <button type="submit" name="update_detail" class="btn btn-primary">
-                  <i class="bi bi-pencil-square"></i> Edit
-                </button>
-                <a href="data_material.php" class="btn btn-secondary">Batal</a>
-              </div>
-
-            </form>
+            </div>
           </div>
-        </div>
+
+          <!-- DC, S-calm, Clam Hook -->
+          <div class="row">
+            <div class="col-md-4"><div class="form-group"><label>DC</label><input type="number" name="dc" class="form-control"
+                value="<?= htmlspecialchars($editDetail['dc'] ?? '') ?>"></div></div>
+            <div class="col-md-4"><div class="form-group"><label>S-calm</label><input type="number" name="s_calm" class="form-control"
+                value="<?= htmlspecialchars($editDetail['s_calm'] ?? '') ?>"></div></div>
+            <div class="col-md-4"><div class="form-group"><label>Clam Hook</label><input type="number" name="clam_hook" class="form-control"
+                value="<?= htmlspecialchars($editDetail['clam_hook'] ?? '') ?>"></div></div>
+          </div>
+
+          <!-- OTP, Prekso, Tiang -->
+          <div class="row">
+            <div class="col-md-4"><div class="form-group"><label>OTP</label><input type="number" name="otp" class="form-control"
+                value="<?= htmlspecialchars($editDetail['otp'] ?? '') ?>"></div></div>
+            <div class="col-md-4"><div class="form-group"><label>Prekso</label><input type="number" name="prekso" class="form-control"
+                value="<?= htmlspecialchars($editDetail['prekso'] ?? '') ?>"></div></div>
+            <div class="col-md-4"><div class="form-group"><label>Tiang</label><input type="number" name="tiang" class="form-control"
+                value="<?= htmlspecialchars($editDetail['tiang'] ?? '') ?>"></div></div>
+          </div>
+
+        
+
+          <!-- Tanggal & SOC -->
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>Tanggal</label>
+                <?php
+                  $tanggal_val = '';
+                  if (!empty($editDetail['tanggal'])) {
+                    $ts = strtotime($editDetail['tanggal']);
+                    if ($ts !== false) $tanggal_val = date('Y-m-d', $ts);
+                  }
+                ?>
+                <input type="date" name="tanggal" class="form-control"
+                       value="<?= htmlspecialchars($tanggal_val) ?>">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label>SOC</label>
+                <div class="input-group">
+                  <select name="soc_option" class="form-control">
+                    <option value="">-- Pilih SOC --</option>
+                    <option value="Fuji" <?= ($editDetail['soc_option'] ?? '') == "Fuji" ? "selected" : "" ?>>Fuji</option>
+                    <option value="Sum" <?= ($editDetail['soc_option'] ?? '') == "Sum" ? "selected" : "" ?>>Sum</option>
+                  </select>
+                  <input type="number" name="soc_value" class="form-control" placeholder="Nilai"
+                         value="<?= htmlspecialchars($editDetail['soc_value'] ?? '') ?>">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Precont -->
+          <div class="form-group mt-3">
+            <label>Precont</label>
+            <div class="row">
+              <?php
+                $editPrecont = [];
+                if (!empty($editDetail['precont_json'])) {
+                  $tmp = json_decode($editDetail['precont_json'], true);
+                  if (is_array($tmp)) $editPrecont = $tmp;
+                }
+                foreach ([50,75,80,100,120,135,150,180] as $val):
+              ?>
+              <div class="col-md-3 col-6 mb-2">
+                <div class="input-group">
+                  <span class="input-group-text small-label"><?= $val ?></span>
+                  <input type="number" name="precont[<?= $val ?>]" class="form-control" placeholder="Nilai"
+                         value="<?= htmlspecialchars($editPrecont[$val] ?? '') ?>">
+                </div>
+              </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+
+          <!-- Spliter -->
+          <div class="form-group mt-3">
+            <label>Spliter</label>
+            <div class="row">
+              <?php
+                $editSpliter = [];
+                if (!empty($editDetail['spliter_json'])) {
+                  $tmp = json_decode($editDetail['spliter_json'], true);
+                  if (is_array($tmp)) $editSpliter = $tmp;
+                }
+                foreach (["1.2", "1.4", "1.8", "1.16"] as $port):
+              ?>
+              <div class="col-md-3 col-6 mb-2">
+                <div class="input-group">
+                  <span class="input-group-text small-label"><?= $port ?></span>
+                  <input type="number" name="spliter[<?= $port ?>]" class="form-control" placeholder="Nilai"
+                         value="<?= htmlspecialchars($editSpliter[$port] ?? '') ?>">
+                </div>
+              </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+
+          <!-- ✅ Smoove + AD-SC + Tipe Pekerjaan (Sejajar dan Seragam) -->
+            <div class="form-group mt-3">
+              <div class="row align-items-end g-2">
+
+                <?php
+                $editSmoove = [];
+                if (!empty($editDetail['smoove_json'])) {
+                  $tmp = json_decode($editDetail['smoove_json'], true);
+                  if (is_array($tmp)) $editSmoove = $tmp;
+                }
+                foreach (["Kecil", "Tipe 3"] as $port):
+                ?>
+                  <div class="col-md-3 col-6">
+                    <label class="form-label mb-1">Smoove</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text small-label"><?= $port ?></span>
+                      <input type="number" name="smoove[<?= $port ?>]" class="form-control form-control-sm" placeholder="Nilai"
+                            value="<?= htmlspecialchars($editSmoove[$port] ?? '') ?>">
+                    </div>
+                  </div>
+                <?php endforeach; ?>
+
+                <div class="col-md-3 col-6">
+                  <label class="form-label mb-1">AD-SC</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text small-label">AD-SC</span>
+                    <input type="number" name="ad_sc" class="form-control form-control-sm" placeholder="Nilai AD-SC"
+                          value="<?= htmlspecialchars($editDetail['ad_sc'] ?? '') ?>">
+                  </div>
+                </div>
+
+                <div class="col-md-3 col-6">
+              <label class="form-label mb-1">Tipe Pekerjaan</label>
+              <select name="tipe_pekerjaan" class="form-control form-control-sm">
+                <option value="" disabled <?= empty($editDetail['tipe_pekerjaan']) ? 'selected' : '' ?>>Tipe Pekerjaan</option>
+                <?php
+                $tipeOptions = ["IOAN","Provisioning","Maintenance","Konstruksi","Mitratel"];
+                foreach ($tipeOptions as $opt):
+                ?>
+                  <option value="<?= $opt ?>" <?= ($editDetail['tipe_pekerjaan'] ?? '') == $opt ? 'selected' : '' ?>>
+                    <?= $opt ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+
+              </div>
+            </div>
+
+
+          <!-- Tombol -->
+          <div class="mt-3 text-end">
+            <button type="submit" name="update_detail" class="btn btn-primary">
+              <i class="bi bi-pencil-square"></i> Edit
+            </button>
+            <a href="data_material.php" class="btn btn-secondary">Batal</a>
+          </div>
+        </form>
       </div>
     </div>
+  </div>
+</div>
 <?php endif; ?>
 
 
 
-    <div class="row mt-4">
+
+<style>
+  /* ======== TABEL DASAR ======== */
+  .table-sm td,
+  .table-sm th {
+    padding: 0.25rem 0.45rem;   /* lebih kecil */
+    font-size: 0.78rem;         /* sedikit lebih kecil */
+    vertical-align: middle !important;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.1;
+  }
+
+  .table-dark th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle !important;
+  }
+
+  .table {
+    border-collapse: collapse !important;
+    width: 100%;
+  }
+
+  .table td, .table th {
+    border: 1px solid #dee2e6;
+  }
+
+  /* ======== WARNA BARIS ======== */
+  .table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9fafb;
+  }
+
+  tbody tr:hover {
+    background-color: #eef6ff;
+    transition: background 0.2s ease;
+  }
+
+  /* ======== KOLOM PRECONT, SPLITER, SMOOVE ======== */
+  .precont-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .precont-item {
+    font-size: 0.72rem;
+    background: #f1f3f5;
+    border-radius: 4px;
+    padding: 1px 4px;
+    border: 1px solid #dee2e6;
+    line-height: 1.1;
+  }
+
+  /* ======== KOLOM ANGKA DAN TENGAH ======== */
+  td.text-right {
+    text-align: right !important;
+    vertical-align: middle !important;
+  }
+
+  .soc-cell, 
+  td, 
+  th {
+    vertical-align: middle !important;
+    text-align: center;
+  }
+
+  /* ======== PERBAIKAN KHUSUS AD-SC ======== */
+  td:nth-child(15), th:nth-child(15) {
+    width: 55px;                /* atur lebar kolom AD-SC biar seragam */
+    text-align: center;
+    vertical-align: middle !important;
+  }
+
+  /* ======== TOMBOL ======== */
+  .btn-sm {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    vertical-align: middle;
+  }
+
+  /* ======== PAGINATION ======== */
+  .pagination .page-link {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+</style>
+
+
+<!-- ====================== REKAP DATA MATERIAL ====================== -->
+<div class="row mt-4">
   <div class="col-md-12 grid-margin stretch-card">
     <div class="card shadow">
       <div class="card-body">
@@ -475,92 +611,114 @@ if (isset($_GET['edit_detail'])) {
                 <th>Tiang</th>
                 <th>SOC</th>
                 <th>Precont</th>
+                <th>Spliter</th>
+                <th>Smoove</th>
+                <th>AD-SC</th>
+                <th>Tipe Pekerjaan</th> <!-- kolom baru -->
                 <th>Aksi</th>
               </tr>
             </thead>
-            <tbody id="table-body">
+            <tbody>
               <?php
-              // --- Pagination Setup --- //
-              $limit = 5; // tampil 5 data per halaman
+              $limit = 5;
               $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
               $start = ($page > 1) ? ($page * $limit) - $limit : 0;
 
-              // Hitung total data
               $resultTotal = $conn->query("SELECT COUNT(*) AS total FROM teknisi_detail");
               $totalData   = $resultTotal->fetch_assoc()['total'];
               $totalPages  = ceil($totalData / $limit);
 
-              // Ambil data sesuai halaman, urutkan teknisi A-Z
               $qDetail = $conn->query("
                 SELECT d.*, t.namatek 
                 FROM teknisi_detail d 
                 JOIN teknisi t ON d.teknisi_id = t.id 
-                ORDER BY d.id ASC
+                ORDER BY d.id DESC
                 LIMIT $start, $limit
               ");
 
               if ($qDetail && $qDetail->num_rows > 0):
                 $no = $start + 1;
                 while ($d = $qDetail->fetch_assoc()):
+                  // Ganti nilai null/kosong jadi 0
+                  foreach (['dc','s_calm','clam_hook','otp','prekso','tiang','ad_sc'] as $key) {
+                    if (empty($d[$key])) $d[$key] = 0;
+                  }
               ?>
-                  <tr>
-                    <td><?= $no++ ?></td>
-                    <td class="fw-semibold"><?= htmlspecialchars($d['namatek']) ?></td>
-                    <td><?= htmlspecialchars($d['tanggal']) ?></td>
-                    <td><?= !empty($d['rfs']) ? htmlspecialchars($d['rfs']) : 0 ?></td>
-                    <td><?= !empty($d['dc']) ? htmlspecialchars($d['dc']) : 0 ?></td>
-                    <td><?= !empty($d['s_calm']) ? htmlspecialchars($d['s_calm']) : 0 ?></td>
-                    <td><?= !empty($d['clam_hook']) ? htmlspecialchars($d['clam_hook']) : 0 ?></td>
-                    <td><?= !empty($d['otp']) ? htmlspecialchars($d['otp']) : 0 ?></td>
-                    <td><?= !empty($d['prekso']) ? htmlspecialchars($d['prekso']) : 0 ?></td>
-                    <td><?= !empty($d['tiang']) ? htmlspecialchars($d['tiang']) : 0 ?></td>
+              <tr>
+                <td><?= $no++ ?></td>
+                <td><?= htmlspecialchars($d['namatek']) ?></td>
+                <td><?= htmlspecialchars($d['tanggal'] ?? '-') ?></td>
+                <td><?= htmlspecialchars($d['rfs'] ?? '-') ?></td>
+                <td class="text-right"><?= $d['dc'] ?></td>
+                <td class="text-right"><?= $d['s_calm'] ?></td>
+                <td class="text-right"><?= $d['clam_hook'] ?></td>
+                <td class="text-right"><?= $d['otp'] ?></td>
+                <td class="text-right"><?= $d['prekso'] ?></td>
+                <td class="text-right"><?= $d['tiang'] ?></td>
 
-                    <td class="soc-cell">
-                      <?= !empty($d['soc_option']) ? htmlspecialchars($d['soc_option']) : 0 ?>
-                      <?php if (!empty($d['soc_value'])): ?>
-                        (<?= htmlspecialchars($d['soc_value']) ?>)
-                      <?php endif; ?>
-                    </td>
+                <td class="soc-cell">
+                  <?= htmlspecialchars($d['soc_option'] ?? '-') ?>
+                  <?php if (!empty($d['soc_value'])): ?>
+                    (<?= htmlspecialchars($d['soc_value']) ?>)
+                  <?php endif; ?>
+                </td>
 
-                    <td>
-                      <?php
-                      if (!empty($d['precont_json'])) {
-                        $pc = json_decode($d['precont_json'], true);
-                        if (is_array($pc) && count($pc) > 0) {
-                          echo '<div class="precont-list">';
-                          foreach ($pc as $k => $v) {
-                            echo '<span class="precont-item">' . htmlspecialchars($k) . " ($v)</span>";
-                          }
-                          echo '</div>';
-                        } else {
-                          echo 0;
-                        }
-                      } else {
-                        echo 0;
-                      }
-                      ?>
-                    </td>
+                <!-- Precont -->
+                <td>
+                  <?php
+                  $pc = json_decode($d['precont_json'], true);
+                  if (is_array($pc) && count($pc) > 0) {
+                    echo '<div class="precont-list">';
+                    foreach ($pc as $k => $v)
+                      echo '<span class="precont-item">'.$k." ($v)</span>";
+                    echo '</div>';
+                  } else echo '0';
+                  ?>
+                </td>
 
-                    <td>
-                      <!-- Tambahkan &page supaya tetap di halaman yang sama -->
-                      <a href="?edit_detail=<?= $d['id'] ?>&page=<?= $page ?>" 
-                         class="btn btn-sm btn-warning d-inline-flex align-items-center gap-1">
-                        <i class="bi bi-pencil"></i> Edit
-                      </a>
-                      <a href="?delete_detail=<?= $d['id'] ?>&page=<?= $page ?>" 
-                         class="btn btn-sm btn-danger d-inline-flex align-items-center gap-1"
-                         onclick="return confirm('Yakin hapus data ini?')">
-                        <i class="bi bi-trash"></i> Delete
-                      </a>
-                    </td>
-                  </tr>
-              <?php
-                endwhile;
-              else:
-              ?>
-                <tr>
-                  <td colspan="13">Tidak ada data material.</td>
-                </tr>
+                <!-- Spliter -->
+                <td>
+                  <?php
+                  $sj = json_decode($d['spliter_json'], true);
+                  if (is_array($sj) && count($sj) > 0) {
+                    echo '<div class="precont-list">';
+                    foreach ($sj as $k => $v)
+                      echo '<span class="precont-item">'.$k." ($v)</span>";
+                    echo '</div>';
+                  } else echo '0';
+                  ?>
+                </td>
+
+                <!-- Smoove -->
+                <td>
+                  <?php
+                  $sm = json_decode($d['smoove_json'], true);
+                  if (is_array($sm) && count($sm) > 0) {
+                    echo '<div class="precont-list">';
+                    foreach ($sm as $k => $v)
+                      echo '<span class="precont-item">'.$k." ($v)</span>";
+                    echo '</div>';
+                  } else echo '0';
+                  ?>
+                </td>
+
+                <td class="text-right"><?= $d['ad_sc'] ?></td>
+
+                <!-- Tipe Pekerjaan -->
+                <td><?= htmlspecialchars($d['tipe_pekerjaan'] ?? '-') ?></td>
+
+                <td>
+                  <a href="?edit_detail=<?= $d['id'] ?>&page=<?= $page ?>" class="btn btn-sm btn-warning">
+                    <i class="bi bi-pencil"></i> Edit
+                  </a>
+                  <a href="?delete_detail=<?= $d['id'] ?>&page=<?= $page ?>"
+                     class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus data ini?')">
+                    <i class="bi bi-trash"></i> Delete
+                  </a>
+                </td>
+              </tr>
+              <?php endwhile; else: ?>
+              <tr><td colspan="17">Tidak ada data material.</td></tr>
               <?php endif; ?>
             </tbody>
           </table>
@@ -593,6 +751,14 @@ if (isset($_GET['edit_detail'])) {
     </div>
   </div>
 </div>
+
+
+
+
+
+
+
+
 <!-- Notifikasi Berhasil Tambah Data, Update, Delete -->
    <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

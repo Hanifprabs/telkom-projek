@@ -27,28 +27,27 @@ $sql = "SELECT id, namatek, nik, sektor, mitra, idtele, crew, valid
         FROM teknisi";
 $result = $conn->query($sql);
 
-// ukuran precont yang dipakai (sama seperti di UI)
+// ================== CONFIGURASI DASAR ================== //
 $PRECONT_SIZES = [50,75,80,100,120,135,150,180];
 
-// helper: decode GROUP_CONCAT precont_json (separator '||') -> sum per size
-function sum_precont_concat(string $concat): array {
+// helper: decode GROUP_CONCAT JSON (separator '||') -> sum per size
+function sum_json_concat(string $concat): array {
     $out = [];
     if ($concat === '' || $concat === null) return $out;
     $parts = explode('||', $concat);
     foreach ($parts as $p) {
         $arr = json_decode($p, true);
         if (!is_array($arr)) continue;
-        foreach ($arr as $size => $val) {
-            $key = (int)$size;
-            $out[$key] = ($out[$key] ?? 0) + (int)$val;
+        foreach ($arr as $key => $val) {
+            $k = (int)$key;
+            $out[$k] = ($out[$k] ?? 0) + (int)$val;
         }
     }
     return $out;
 }
 
-// -----------------------------------------------------------------------------
-// 1) ambil semua teknisi (agar kita iterate per teknisi)
-$sql_teknisi = "SELECT id, namatek FROM teknisi"; // sesuaikan nama tabel/kolom jika beda
+// ================== 1) DATA TEKNISI ================== //
+$sql_teknisi = "SELECT id, namatek FROM teknisi";
 $res = $conn->query($sql_teknisi);
 $teknisiRows = [];
 if ($res && $res->num_rows > 0) {
@@ -57,8 +56,7 @@ if ($res && $res->num_rows > 0) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// 2) ambil agregat 'masuk' per teknisi dari teknisi_detail
+// ================== 2) MATERIAL MASUK ================== //
 $sql_masuk = "
   SELECT 
     teknisi_id,
@@ -68,9 +66,12 @@ $sql_masuk = "
     COALESCE(SUM(otp),0) AS otp,
     COALESCE(SUM(prekso),0) AS prekso,
     COALESCE(SUM(tiang),0) AS tiang,
+    COALESCE(SUM(ad_sc),0) AS ad_sc,
     COALESCE(SUM(CASE WHEN soc_option='Fuji' THEN soc_value ELSE 0 END),0) AS soc_fuji,
     COALESCE(SUM(CASE WHEN soc_option='Sum'  THEN soc_value ELSE 0 END),0) AS soc_sum,
-    GROUP_CONCAT(precont_json SEPARATOR '||') AS precont_concat
+    GROUP_CONCAT(precont_json SEPARATOR '||') AS precont_concat,
+    GROUP_CONCAT(spliter_json SEPARATOR '||') AS spliter_concat,
+    GROUP_CONCAT(smoove_json SEPARATOR '||') AS smoove_concat
   FROM teknisi_detail
   GROUP BY teknisi_id
 ";
@@ -79,8 +80,12 @@ $aggMasuk = [];
 if ($res && $res->num_rows > 0) {
     while ($r = $res->fetch_assoc()) {
         $tid = $r['teknisi_id'];
-        $pre = sum_precont_concat($r['precont_concat'] ?? '');
-        // normalisasi semua PRECONT_SIZES ke 0 jika tidak ada
+
+        $pre = sum_json_concat($r['precont_concat'] ?? '');
+        $spliter = sum_json_concat($r['spliter_concat'] ?? '');
+        $smoove = sum_json_concat($r['smoove_concat'] ?? '');
+
+        // Normalisasi ukuran
         $pre_norm = [];
         foreach ($PRECONT_SIZES as $s) { $pre_norm[$s] = $pre[$s] ?? 0; }
 
@@ -91,15 +96,17 @@ if ($res && $res->num_rows > 0) {
             'otp' => (int)$r['otp'],
             'prekso' => (int)$r['prekso'],
             'tiang' => (int)$r['tiang'],
+            'ad_sc' => (int)$r['ad_sc'],
             'soc_fuji' => (int)$r['soc_fuji'],
             'soc_sum'  => (int)$r['soc_sum'],
             'precont'  => $pre_norm,
+            'spliter'  => $spliter,
+            'smoove'   => $smoove,
         ];
     }
 }
 
-// -----------------------------------------------------------------------------
-// 3) ambil agregat 'pakai' per teknisi dari material_used
+// ================== 3) MATERIAL PAKAI ================== //
 $sql_pakai = "
   SELECT 
     teknisi_id,
@@ -109,9 +116,12 @@ $sql_pakai = "
     COALESCE(SUM(otp),0) AS otp,
     COALESCE(SUM(prekso),0) AS prekso,
     COALESCE(SUM(tiang),0) AS tiang,
+    COALESCE(SUM(ad_sc),0) AS ad_sc,
     COALESCE(SUM(CASE WHEN soc_option='Fuji' THEN soc_value ELSE 0 END),0) AS soc_fuji,
     COALESCE(SUM(CASE WHEN soc_option='Sum'  THEN soc_value ELSE 0 END),0) AS soc_sum,
-    GROUP_CONCAT(precont_json SEPARATOR '||') AS precont_concat
+    GROUP_CONCAT(precont_json SEPARATOR '||') AS precont_concat,
+    GROUP_CONCAT(spliter_json SEPARATOR '||') AS spliter_concat,
+    GROUP_CONCAT(smoove_json SEPARATOR '||') AS smoove_concat
   FROM material_used
   GROUP BY teknisi_id
 ";
@@ -120,7 +130,11 @@ $aggPakai = [];
 if ($res && $res->num_rows > 0) {
     while ($r = $res->fetch_assoc()) {
         $tid = $r['teknisi_id'];
-        $pre = sum_precont_concat($r['precont_concat'] ?? '');
+
+        $pre = sum_json_concat($r['precont_concat'] ?? '');
+        $spliter = sum_json_concat($r['spliter_concat'] ?? '');
+        $smoove = sum_json_concat($r['smoove_concat'] ?? '');
+
         $pre_norm = [];
         foreach ($PRECONT_SIZES as $s) { $pre_norm[$s] = $pre[$s] ?? 0; }
 
@@ -131,56 +145,88 @@ if ($res && $res->num_rows > 0) {
             'otp' => (int)$r['otp'],
             'prekso' => (int)$r['prekso'],
             'tiang' => (int)$r['tiang'],
+            'ad_sc' => (int)$r['ad_sc'],
             'soc_fuji' => (int)$r['soc_fuji'],
             'soc_sum'  => (int)$r['soc_sum'],
             'precont'  => $pre_norm,
+            'spliter'  => $spliter,
+            'smoove'   => $smoove,
         ];
     }
 }
 
-// -----------------------------------------------------------------------------
-// 4) iterate per teknisi untuk membangun angka agregat final
-$sum_total = ['dc'=>0,'s_calm'=>0,'clam_hook'=>0,'otp'=>0,'prekso'=>0,'tiang'=>0,'soc_fuji'=>0,'soc_sum'=>0];
-$sum_used  = ['dc'=>0,'s_calm'=>0,'clam_hook'=>0,'otp'=>0,'prekso'=>0,'tiang'=>0,'soc_fuji'=>0,'soc_sum'=>0];
-$sum_sisa  = ['dc'=>0,'s_calm'=>0,'clam_hook'=>0,'otp'=>0,'prekso'=>0,'tiang'=>0,'soc_fuji'=>0,'soc_sum'=>0];
+// ================== 4) HITUNG TOTAL, PAKAI, SISA ================== //
+$fields = ['dc','s_calm','clam_hook','otp','prekso','tiang','ad_sc','soc_fuji','soc_sum'];
+
+$sum_total = array_fill_keys($fields, 0);
+$sum_used  = array_fill_keys($fields, 0);
+$sum_sisa  = array_fill_keys($fields, 0);
 
 $sum_pre_total = array_fill_keys($PRECONT_SIZES, 0);
 $sum_pre_used  = array_fill_keys($PRECONT_SIZES, 0);
 $sum_pre_sisa  = array_fill_keys($PRECONT_SIZES, 0);
 
-foreach ($teknisiRows as $tid => $nama) {
-    $masuk = $aggMasuk[$tid] ?? [
-        'dc'=>0,'s_calm'=>0,'clam_hook'=>0,'otp'=>0,'prekso'=>0,'tiang'=>0,'soc_fuji'=>0,'soc_sum'=>0,
-        'precont'=>array_fill_keys($PRECONT_SIZES, 0)
-    ];
-    $hasPakai = isset($aggPakai[$tid]);
-    $pakai  = $aggPakai[$tid] ?? [
-        'dc'=>0,'s_calm'=>0,'clam_hook'=>0,'otp'=>0,'prekso'=>0,'tiang'=>0,'soc_fuji'=>0,'soc_sum'=>0,
-        'precont'=>array_fill_keys($PRECONT_SIZES, 0)
-    ];
+$sum_spliter_total = [];
+$sum_spliter_used  = [];
+$sum_spliter_sisa  = [];
 
-    // tambahkan ke total / used global
-    foreach (['dc','s_calm','clam_hook','otp','prekso','tiang','soc_fuji','soc_sum'] as $k) {
-        $sum_total[$k] += $masuk[$k];
-        if ($hasPakai) $sum_used[$k] += $pakai[$k]; // hanya tambahkan ke used kalau ada input pakai
+$sum_smoove_total = [];
+$sum_smoove_used  = [];
+$sum_smoove_sisa  = [];
+
+foreach ($teknisiRows as $tid => $nama) {
+    $masuk = $aggMasuk[$tid] ?? array_merge(array_fill_keys($fields, 0), [
+        'precont'=>array_fill_keys($PRECONT_SIZES,0),
+        'spliter'=>[],
+        'smoove'=>[],
+    ]);
+    $hasPakai = isset($aggPakai[$tid]);
+    $pakai = $aggPakai[$tid] ?? array_merge(array_fill_keys($fields, 0), [
+        'precont'=>array_fill_keys($PRECONT_SIZES,0),
+        'spliter'=>[],
+        'smoove'=>[],
+    ]);
+
+    // total dan used
+    foreach ($fields as $f) {
+        $sum_total[$f] += $masuk[$f];
+        if ($hasPakai) $sum_used[$f] += $pakai[$f];
     }
 
-    // precont per ukuran
+    // precont
     foreach ($PRECONT_SIZES as $size) {
         $sum_pre_total[$size] += ($masuk['precont'][$size] ?? 0);
         if ($hasPakai) $sum_pre_used[$size] += ($pakai['precont'][$size] ?? 0);
     }
 
-    // SISA per teknisi: hanya dihitung kalau teknisi sudah input 'pakai' (sesuai permintaan)
+    // spliter & smoove
+    foreach (['spliter','smoove'] as $key) {
+        foreach (($masuk[$key] ?? []) as $k => $v) {
+            $sumName = 'sum_'.$key.'_total';
+            ${$sumName}[$k] = (${$sumName}[$k] ?? 0) + $v;
+        }
+        if ($hasPakai) {
+            foreach (($pakai[$key] ?? []) as $k => $v) {
+                $sumName = 'sum_'.$key.'_used';
+                ${$sumName}[$k] = (${$sumName}[$k] ?? 0) + $v;
+            }
+        }
+    }
+
+    // sisa (jika sudah ada data pakai)
     if ($hasPakai) {
-        foreach (['dc','s_calm','clam_hook','otp','prekso','tiang','soc_fuji','soc_sum'] as $k) {
-            $sum_sisa[$k] += ($masuk[$k] - $pakai[$k]); // boleh negatif
+        foreach ($fields as $f) {
+            $sum_sisa[$f] += ($masuk[$f] - $pakai[$f]);
         }
         foreach ($PRECONT_SIZES as $size) {
             $sum_pre_sisa[$size] += (($masuk['precont'][$size] ?? 0) - ($pakai['precont'][$size] ?? 0));
         }
-    } else {
-        // teknisi belum input pakai -> sisa untuk teknisi ini dianggap 0 (tidak mengurangi)
+        foreach (['spliter','smoove'] as $key) {
+            foreach (($masuk[$key] ?? []) as $k => $v) {
+                $sumName = 'sum_'.$key.'_sisa';
+                ${$sumName}[$k] = (${$sumName}[$k] ?? 0) + ($v - ($pakai[$key][$k] ?? 0));
+            }
+        }
     }
 }
 
@@ -298,7 +344,14 @@ if (!empty($belum_lapor_ids)) {
 // $PRECONT_SIZES = [50, 75, 80, 100, 120, 135, 150, 180];
 
 // --- Fungsi bantu buat baris kosong
-function initAggRow($sizes = []) {
+// --- Inisialisasi ukuran Precont + pilihan Spliter & Smoove
+$PRECONT_SIZES = [50, 75, 80, 100, 120, 135, 150, 180];
+$SPLITER_TYPES = ['1.2', '1.4', '1.8', '1.16'];
+$SMOOVE_TYPES  = ['Kecil', 'Tipe 3'];
+
+// --- Fungsi bantu buat baris kosong
+function initAggRow($precontSizes = [], $spliterTypes = [], $smooveTypes = [])
+{
     $row = [
         'dc'        => 0,
         's_calm'    => 0,
@@ -308,38 +361,41 @@ function initAggRow($sizes = []) {
         'tiang'     => 0,
         'soc_fuji'  => 0,
         'soc_sum'   => 0,
-        'precont'   => []
+        'ad_sc'     => 0,
+        'precont'   => [],
+        'spliter'   => [],
+        'smoove'    => []
     ];
-    foreach ($sizes as $s) {
-        $row['precont'][$s] = 0;
-    }
+
+    foreach ($precontSizes as $s) $row['precont'][$s] = 0;
+    foreach ($spliterTypes as $t) $row['spliter'][$t] = 0;
+    foreach ($smooveTypes as $t)  $row['smoove'][$t]  = 0;
+
     return $row;
 }
 
 // --- Pagination setup
-$limit  = 3;
+$limit  = 5;
 $page   = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $offset = ($page - 1) * $limit;
 
-// --- Filter (all, lapor, belum)
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
-
-// --- Hitung total teknisi
-$sqlCount = "SELECT COUNT(DISTINCT t.id) as total
-             FROM teknisi t 
-             JOIN teknisi_detail d ON t.id = d.teknisi_id";
+// --- Hitung total teknisi dari teknisi_detail
+$sqlCount = "
+    SELECT COUNT(DISTINCT t.id) AS total
+    FROM teknisi t
+    JOIN teknisi_detail d ON t.id = d.teknisi_id
+";
 $resCount = $conn->query($sqlCount);
-$totalRows = 0;
-if ($resCount && $resCount->num_rows > 0) {
-    $totalRows = (int)$resCount->fetch_assoc()['total'];
-}
-$totalPages = ($limit > 0) ? ceil($totalRows / $limit) : 0;
+$totalRows = ($resCount && $resCount->num_rows > 0)
+    ? (int)$resCount->fetch_assoc()['total']
+    : 0;
+$totalPages = ($totalRows > 0) ? ceil($totalRows / $limit) : 1;
 
-// --- Ambil teknisi
+// --- Ambil teknisi yang punya data di teknisi_detail
 $teknisiRows = [];
 $sqlTeknisi  = "
-    SELECT DISTINCT t.id, t.namatek 
-    FROM teknisi t 
+    SELECT DISTINCT t.id, t.namatek
+    FROM teknisi t
     JOIN teknisi_detail d ON t.id = d.teknisi_id
     ORDER BY t.namatek ASC
     LIMIT $limit OFFSET $offset
@@ -350,9 +406,9 @@ if ($resTeknisi && $resTeknisi->num_rows > 0) {
         $teknisiRows[$row['id']] = $row['namatek'];
     }
 }
-$listTekIds = !empty($teknisiRows) ? implode(",", array_keys($teknisiRows)) : "0";
 
-// --- Variabel agregasi
+$listTekIds = !empty($teknisiRows) ? implode(",", array_map('intval', array_keys($teknisiRows))) : "0";
+
 $aggMasuk   = [];
 $aggPakai   = [];
 $detailInfo = [];
@@ -364,21 +420,25 @@ $sqlDetail = "SELECT * FROM teknisi_detail WHERE teknisi_id IN ($listTekIds)";
 $resDetail = $conn->query($sqlDetail);
 if ($resDetail && $resDetail->num_rows > 0) {
     while ($d = $resDetail->fetch_assoc()) {
-        $tid = $d['teknisi_id'];
-
-        if (!isset($aggMasuk[$tid])) $aggMasuk[$tid] = initAggRow($PRECONT_SIZES);
-
-        foreach (['dc','s_calm','clam_hook','otp','prekso','tiang'] as $k) {
-            $aggMasuk[$tid][$k] += (int)$d[$k];
+        $tid = (int)$d['teknisi_id'];
+        if (!isset($aggMasuk[$tid])) {
+            $aggMasuk[$tid] = initAggRow($PRECONT_SIZES, $SPLITER_TYPES, $SMOOVE_TYPES);
         }
 
+        // Material numerik
+        foreach (['dc', 's_calm', 'clam_hook', 'otp', 'prekso', 'tiang', 'ad_sc'] as $k) {
+            $aggMasuk[$tid][$k] += (int)($d[$k] ?? 0);
+        }
+
+        // SOC
         $socOpt = strtolower(trim($d['soc_option'] ?? ''));
         if ($socOpt === 'fuji') {
-            $aggMasuk[$tid]['soc_fuji'] += (int)$d['soc_value'];
+            $aggMasuk[$tid]['soc_fuji'] += (int)($d['soc_value'] ?? 0);
         } elseif ($socOpt === 'sum') {
-            $aggMasuk[$tid]['soc_sum']  += (int)$d['soc_value'];
+            $aggMasuk[$tid]['soc_sum']  += (int)($d['soc_value'] ?? 0);
         }
 
+        // === Precont JSON ===
         if (!empty($d['precont_json'])) {
             $decoded = json_decode($d['precont_json'], true);
             if (is_array($decoded)) {
@@ -389,16 +449,34 @@ if ($resDetail && $resDetail->num_rows > 0) {
                     }
                 }
             }
-        } elseif (!empty($d['precont_option']) && isset($d['precont_value'])) {
-            $size = (int)$d['precont_option'];
-            $val  = (int)$d['precont_value'];
-            if (in_array($size, $PRECONT_SIZES, true)) {
-                $aggMasuk[$tid]['precont'][$size] += $val;
+        }
+
+        // === Spliter JSON ===
+        if (!empty($d['spliter_json'])) {
+            $decoded = json_decode($d['spliter_json'], true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $type => $val) {
+                    if (in_array($type, $SPLITER_TYPES, true) && is_numeric($val)) {
+                        $aggMasuk[$tid]['spliter'][$type] += (int)$val;
+                    }
+                }
+            }
+        }
+
+        // === Smoove JSON ===
+        if (!empty($d['smoove_json'])) {
+            $decoded = json_decode($d['smoove_json'], true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $type => $val) {
+                    if (in_array($type, $SMOOVE_TYPES, true) && is_numeric($val)) {
+                        $aggMasuk[$tid]['smoove'][$type] += (int)$val;
+                    }
+                }
             }
         }
 
         if (!isset($detailInfo[$tid]['rfs'])) {
-            $detailInfo[$tid]['rfs'] = $d['rfs'] ?? null;
+            $detailInfo[$tid]['rfs'] = $d['rfs'] ?? '';
         }
     }
 }
@@ -410,24 +488,23 @@ $sqlUsed = "SELECT * FROM material_used WHERE teknisi_id IN ($listTekIds)";
 $resUsed = $conn->query($sqlUsed);
 if ($resUsed && $resUsed->num_rows > 0) {
     while ($d = $resUsed->fetch_assoc()) {
-        $tid = $d['teknisi_id'];
-        if (!isset($aggPakai[$tid])) $aggPakai[$tid] = initAggRow($PRECONT_SIZES);
+        $tid = (int)$d['teknisi_id'];
+        if (!isset($aggPakai[$tid])) {
+            $aggPakai[$tid] = initAggRow($PRECONT_SIZES, $SPLITER_TYPES, $SMOOVE_TYPES);
+        }
 
-        foreach (['dc','s_calm','clam_hook','otp','prekso','tiang'] as $k) {
-            $aggPakai[$tid][$k] += (int)$d[$k];
+        foreach (['dc', 's_calm', 'clam_hook', 'otp', 'prekso', 'tiang', 'ad_sc'] as $k) {
+            $aggPakai[$tid][$k] += (int)($d[$k] ?? 0);
         }
 
         $socOpt = strtolower(trim($d['soc_option'] ?? ''));
         if ($socOpt === 'fuji') {
-            $aggPakai[$tid]['soc_fuji'] += (int)$d['soc_value'];
+            $aggPakai[$tid]['soc_fuji'] += (int)($d['soc_value'] ?? 0);
         } elseif ($socOpt === 'sum') {
-            $aggPakai[$tid]['soc_sum']  += (int)$d['soc_value'];
+            $aggPakai[$tid]['soc_sum']  += (int)($d['soc_value'] ?? 0);
         }
 
-        if (!isset($detailInfo[$tid]['wo'])) {
-            $detailInfo[$tid]['wo'] = $d['wo'] ?? null;
-        }
-
+        // === Precont JSON ===
         if (!empty($d['precont_json'])) {
             $decoded = json_decode($d['precont_json'], true);
             if (is_array($decoded)) {
@@ -438,12 +515,34 @@ if ($resUsed && $resUsed->num_rows > 0) {
                     }
                 }
             }
-        } elseif (!empty($d['precont_option']) && isset($d['precont_value'])) {
-            $size = (int)$d['precont_option'];
-            $val  = (int)$d['precont_value'];
-            if (in_array($size, $PRECONT_SIZES, true)) {
-                $aggPakai[$tid]['precont'][$size] += $val;
+        }
+
+        // === Spliter JSON ===
+        if (!empty($d['spliter_json'])) {
+            $decoded = json_decode($d['spliter_json'], true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $type => $val) {
+                    if (in_array($type, $SPLITER_TYPES, true) && is_numeric($val)) {
+                        $aggPakai[$tid]['spliter'][$type] += (int)$val;
+                    }
+                }
             }
+        }
+
+        // === Smoove JSON ===
+        if (!empty($d['smoove_json'])) {
+            $decoded = json_decode($d['smoove_json'], true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $type => $val) {
+                    if (in_array($type, $SMOOVE_TYPES, true) && is_numeric($val)) {
+                        $aggPakai[$tid]['smoove'][$type] += (int)$val;
+                    }
+                }
+            }
+        }
+
+        if (!isset($detailInfo[$tid]['wo'])) {
+            $detailInfo[$tid]['wo'] = $d['wo'] ?? '';
         }
     }
 }
@@ -800,7 +899,7 @@ $conn->close();
       </div>
     </div>
 
-       <!-- Rekap Sisa Material -->
+  <!-- ================= REKAP SISA MATERIAL ================= -->
 <div class="row mt-4" id="rekapMaterial">
   <div class="col-md-12 grid-margin stretch-card">
     <div class="card shadow">
@@ -834,114 +933,129 @@ $conn->close();
                 <th>TIANG</th>
                 <th>SOC</th>
                 <th>Precont</th>
+                <th>Spliter</th>
+                <th>Smoove</th>
+                <th>AD-SC</th>
               </tr>
             </thead>
             <tbody>
-              <?php
-                if (!function_exists('initAggRow')) {
-                  function initAggRow($PRECONT_SIZES) {
-                    return [
-                      'dc' => 0,
-                      's_calm' => 0,
-                      'clam_hook' => 0,
-                      'otp' => 0,
-                      'prekso' => 0,
-                      'tiang' => 0,
-                      'soc_fuji' => 0,
-                      'soc_sum' => 0,
-                      'precont' => array_fill_keys($PRECONT_SIZES, 0)
-                    ];
-                  }
-                }
+    <?php
+// --- Pastikan definisi ini ada DI SINI (sebelum loop tabel) ---
+$SPLITER_TYPES = ['1.2', '1.4', '1.8', '1.16'];
+$SMOOVE_TYPES  = ['Kecil', 'Tipe 3'];
 
-                $startIndex = ($page - 1) * $limit;
-                $no = $startIndex + 1;
-                $filter = $_GET['filter'] ?? 'all';
+// Pastikan fungsi initAggRow menerima parameter (jika belum ada di file lain)
+if (!function_exists('initAggRow')) {
+    function initAggRow($PRECONT_SIZES = [], $SPLITER_TYPES = [], $SMOOVE_TYPES = []) {
+        $row = [
+            'dc' => 0,
+            's_calm' => 0,
+            'clam_hook' => 0,
+            'otp' => 0,
+            'prekso' => 0,
+            'tiang' => 0,
+            'ad_sc' => 0,
+            'soc_fuji' => 0,
+            'soc_sum' => 0,
+            'precont' => [],
+            'spliter' => [],
+            'smoove' => []
+        ];
+        foreach ($PRECONT_SIZES as $s) $row['precont'][$s] = 0;
+        foreach ($SPLITER_TYPES as $s)  $row['spliter'][$s] = 0;
+        foreach ($SMOOVE_TYPES as $s)   $row['smoove'][$s] = 0;
+        return $row;
+    }
+}
 
-                foreach ($teknisiRows as $tid => $nama):
-                  $masuk = $aggMasuk[$tid] ?? initAggRow($PRECONT_SIZES);
-                  $pakai = $aggPakai[$tid] ?? initAggRow($PRECONT_SIZES);
+// Pastikan var pagination / filter / startIndex / no tersedia
+$filter = $_GET['filter'] ?? 'all';
+$startIndex = isset($page) ? (($page - 1) * ($limit ?? 5)) : 0;
+$no = $startIndex + 1;
 
-                  if (!is_array($masuk)) $masuk = initAggRow($PRECONT_SIZES);
-                  if (!is_array($pakai)) $pakai = initAggRow($PRECONT_SIZES);
+// ------------------ LOOP TABEL ------------------
+foreach ($teknisiRows as $tid => $nama):
+    // ambil agregat, fallback ke row kosong ter-normalisasi
+    $masuk = $aggMasuk[$tid] ?? initAggRow($PRECONT_SIZES, $SPLITER_TYPES, $SMOOVE_TYPES);
+    $pakai = $aggPakai[$tid] ?? initAggRow($PRECONT_SIZES, $SPLITER_TYPES, $SMOOVE_TYPES);
 
-                  $wo  = !empty($detailInfo[$tid]['wo']) ? htmlspecialchars($detailInfo[$tid]['wo']) : null;
+    // pastikan format array
+    if (!is_array($masuk)) $masuk = initAggRow($PRECONT_SIZES, $SPLITER_TYPES, $SMOOVE_TYPES);
+    if (!is_array($pakai)) $pakai = initAggRow($PRECONT_SIZES, $SPLITER_TYPES, $SMOOVE_TYPES);
 
-                  if ($filter === 'lapor' && $wo === null) continue;
-                  if ($filter === 'belum' && $wo !== null) continue;
+    $wo = !empty($detailInfo[$tid]['wo']) ? htmlspecialchars($detailInfo[$tid]['wo']) : null;
+    if ($filter === 'lapor' && $wo === null) continue;
+    if ($filter === 'belum' && $wo !== null) continue;
 
-                  if ($wo === null) {
-                    $sisa = [
-                      'dc' => 0, 's_calm' => 0, 'clam_hook' => 0,
-                      'otp' => 0, 'prekso' => 0, 'tiang' => 0,
-                      'soc_fuji' => 0, 'soc_sum' => 0
-                    ];
-                    $sisaPrecont = array_fill_keys($PRECONT_SIZES, 0);
-                  } else {
-                    $sisaPrecont = [];
-                    foreach ($PRECONT_SIZES as $size) {
-                      $masukPre = $masuk['precont'][$size] ?? 0;
-                      $pakaiPre = $pakai['precont'][$size] ?? 0;
-                      $sisaPrecont[$size] = $masukPre - $pakaiPre;
-                    }
+    // hitung sisa precont / spliter / smoove
+    $sisaPrecont = [];
+    foreach ($PRECONT_SIZES as $size) {
+        $sisaPrecont[$size] = ($masuk['precont'][$size] ?? 0) - ($pakai['precont'][$size] ?? 0);
+    }
 
-                    $sisa = [];
-                    foreach (['dc','s_calm','clam_hook','otp','prekso','tiang'] as $key) {
-                      $masukVal = $masuk[$key] ?? 0;
-                      $pakaiVal = $pakai[$key] ?? 0;
-                      $sisa[$key] = $masukVal - $pakaiVal;
-                    }
+    $sisaSpliter = [];
+    foreach ($SPLITER_TYPES as $type) {
+        $sisaSpliter[$type] = ($masuk['spliter'][$type] ?? 0) - ($pakai['spliter'][$type] ?? 0);
+    }
 
-                    $sisa['soc_fuji'] = ($masuk['soc_fuji'] ?? 0) - ($pakai['soc_fuji'] ?? 0);
-                    $sisa['soc_sum']  = ($masuk['soc_sum']  ?? 0) - ($pakai['soc_sum']  ?? 0);
-                  }
+    $sisaSmoove = [];
+    foreach ($SMOOVE_TYPES as $type) {
+        $sisaSmoove[$type] = ($masuk['smoove'][$type] ?? 0) - ($pakai['smoove'][$type] ?? 0);
+    }
 
-                  $socLabel = "Fuji (" . (int)$sisa['soc_fuji'] . "), Sum (" . (int)$sisa['soc_sum'] . ")";
-              ?>
-              <tr>
-                <td><?= $no++ ?></td>
-                <td><?= htmlspecialchars($nama) ?></td>
-                <td><?= (int)$sisa['dc'] ?></td>
-                <td><?= (int)$sisa['s_calm'] ?></td>
-                <td><?= (int)$sisa['clam_hook'] ?></td>
-                <td><?= (int)$sisa['otp'] ?></td>
-                <td><?= (int)$sisa['prekso'] ?></td>
-                <td><?= (int)$sisa['tiang'] ?></td>
-                <td><?= $socLabel ?></td>
-                <td class="precont-cell">
-                  <?php foreach ($PRECONT_SIZES as $size): ?>
-                    <div class="precont-item">
-                      <?= $size ?> (<span class="badge bg-secondary"><?= (int)$sisaPrecont[$size] ?></span>)
-                    </div>
-                  <?php endforeach; ?>
-                </td>
-              </tr>
-              <?php endforeach; ?>
+    // material tunggal termasuk ad_sc
+    $sisa = [];
+    foreach (['dc','s_calm','clam_hook','otp','prekso','tiang','ad_sc'] as $key) {
+        $sisa[$key] = ($masuk[$key] ?? 0) - ($pakai[$key] ?? 0);
+    }
+
+    // SOC
+    $sisa['soc_fuji'] = ($masuk['soc_fuji'] ?? 0) - ($pakai['soc_fuji'] ?? 0);
+    $sisa['soc_sum']  = ($masuk['soc_sum']  ?? 0) - ($pakai['soc_sum']  ?? 0);
+    $socLabel = "Fuji (" . (int)$sisa['soc_fuji'] . "), Sum (" . (int)$sisa['soc_sum'] . ")";
+?>
+<tr>
+  <td><?= $no++ ?></td>
+  <td><?= htmlspecialchars($nama) ?></td>
+  <td><?= (int)$sisa['dc'] ?></td>
+  <td><?= (int)$sisa['s_calm'] ?></td>
+  <td><?= (int)$sisa['clam_hook'] ?></td>
+  <td><?= (int)$sisa['otp'] ?></td>
+  <td><?= (int)$sisa['prekso'] ?></td>
+  <td><?= (int)$sisa['tiang'] ?></td>
+  <td><?= $socLabel ?></td>
+
+  <td class="precont-cell">
+    <?php foreach ($PRECONT_SIZES as $size): ?>
+      <div class="precont-item">
+        <?= $size ?> (<span class="badge bg-secondary"><?= (int)$sisaPrecont[$size] ?></span>)
+      </div>
+    <?php endforeach; ?>
+  </td>
+
+  <td class="spliter-cell">
+    <?php foreach ($SPLITER_TYPES as $type): ?>
+      <div class="spliter-item">
+        <?= $type ?> (<span class="badge bg-info"><?= (int)$sisaSpliter[$type] ?></span>)
+      </div>
+    <?php endforeach; ?>
+  </td>
+
+  <td class="smoove-cell">
+    <?php foreach ($SMOOVE_TYPES as $type): ?>
+      <div class="smoove-item">
+        <?= $type ?> (<span class="badge bg-warning text-dark"><?= (int)$sisaSmoove[$type] ?></span>)
+      </div>
+    <?php endforeach; ?>
+  </td>
+
+  <td><?= (int)$sisa['ad_sc'] ?></td>
+</tr>
+<?php endforeach; ?>
+
             </tbody>
           </table>
         </div>
-
-        <!-- Pagination -->
-        <nav aria-label="Page navigation">
-          <ul class="pagination pagination-sm justify-content-center">
-            <?php if ($page > 1): ?>
-              <li class="page-item">
-                <a href="#" class="page-link page-btn" data-url="?page=<?= $page-1 ?>&filter=<?= $filter ?>">«</a>
-              </li>
-            <?php endif; ?>
-            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-              <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
-                <a href="#" class="page-link page-btn" data-url="?page=<?= $i ?>&filter=<?= $filter ?>"><?= $i ?></a>
-              </li>
-            <?php endfor; ?>
-            <?php if ($page < $totalPages): ?>
-              <li class="page-item">
-                <a href="#" class="page-link page-btn" data-url="?page=<?= $page+1 ?>&filter=<?= $filter ?>">»</a>
-              </li>
-            <?php endif; ?>
-          </ul>
-        </nav>
-
       </div>
     </div>
   </div>

@@ -24,16 +24,23 @@ $qMaterial = $conn->query("SELECT m.*, t.namatek
                            ORDER BY m.id DESC");
 
 // ================== HELPER: Pastikan Kolom Ada ================== //
-function ensure_column($conn, $table, $column, $definition) {
-    $res = $conn->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
-    if ($res && $res->num_rows === 0) {
-        $conn->query("ALTER TABLE `$table` ADD COLUMN $definition");
+if (!function_exists('ensure_column')) {
+    function ensure_column($conn, $table, $column, $definition) {
+        $res = $conn->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
+        if ($res && $res->num_rows === 0) {
+            $conn->query("ALTER TABLE `$table` ADD COLUMN $definition");
+        }
     }
 }
 
 // Pastikan kolom tambahan ada
 ensure_column($conn, 'teknisi_detail', 'precont_json', "TEXT NULL AFTER soc_value");
 ensure_column($conn, 'teknisi_detail', 'tanggal', "DATE NULL AFTER tiang");
+ensure_column($conn, 'teknisi_detail', 'spliter_json', "TEXT NULL AFTER precont_json");
+ensure_column($conn, 'teknisi_detail', 'smoove_json', "TEXT NULL AFTER spliter_json");
+ensure_column($conn, 'teknisi_detail', 'ad_sc', "VARCHAR(100) NULL AFTER smoove_json");
+ensure_column($conn, 'teknisi_detail', 'tipe_pekerjaan', "VARCHAR(100) NULL AFTER ad_sc");
+
 
 // ================== AUTOCOMPLETE TEKNISI ================== //
 if (isset($_GET['action']) && $_GET['action'] === 'search') {
@@ -117,73 +124,121 @@ if (isset($_GET['edit'])) {
     $editTeknisi = $stmt->get_result()->fetch_assoc();
 }
 
+
+
+
+
+// ================== CRUD DETAIL TEKNISI ================== //
 // ================== CRUD DETAIL TEKNISI ================== //
 if (isset($_POST['submit_detail'])) {
-    $teknisi_id = (int)($_POST['teknisi_id'] ?? 0);
+    $teknisi_id  = (int)($_POST['teknisi_id'] ?? 0);
     if (!$teknisi_id) die("Error: teknisi tidak valid.");
 
+    // Validasi teknisi
     $chk = $conn->prepare("SELECT id FROM teknisi WHERE id=?");
     $chk->bind_param("i", $teknisi_id);
     $chk->execute();
     if ($chk->get_result()->num_rows === 0) die("Error: teknisi_id tidak ditemukan.");
 
-    $rfs        = $_POST['rfs'] ?? null;
-    $dc         = $_POST['dc'] ?: null;
-    $s_calm     = $_POST['s_calm'] ?: null;
-    $clam_hook  = $_POST['clam_hook'] ?: null;
-    $otp        = $_POST['otp'] ?: null;
-    $prekso     = $_POST['prekso'] ?: null;
-    $tiang      = $_POST['tiang'] ?: null;
-    $tanggal    = $_POST['tanggal'] ?: null;
-    $soc_option = $_POST['soc_option'] ?? null;
-    $soc_value  = $_POST['soc_value'] ?: null;
-    $precont_json = json_encode($_POST['precont'] ?? []);
+    // Ambil semua input
+    $rfs            = $_POST['rfs'] ?? '';
+    $dc             = $_POST['dc'] ?? 0;
+    $s_calm         = $_POST['s_calm'] ?? 0;
+    $clam_hook      = $_POST['clam_hook'] ?? 0;
+    $otp            = $_POST['otp'] ?? 0;
+    $prekso         = $_POST['prekso'] ?? 0;
+    $tiang          = $_POST['tiang'] ?? 0;
+    $tanggal        = $_POST['tanggal'] ?? date('Y-m-d');
 
+    // ✅ Pastikan nilai SOC tidak null
+    $soc_option     = !empty($_POST['soc_option']) ? $_POST['soc_option'] : '-';
+    $soc_value      = isset($_POST['soc_value']) && $_POST['soc_value'] !== '' ? (int)$_POST['soc_value'] : 0;
+
+    $precont_json   = json_encode($_POST['precont'] ?? []);
+    $spliter_json   = json_encode($_POST['spliter'] ?? []);
+    $smoove_json    = json_encode($_POST['smoove'] ?? []);
+    $ad_sc          = $_POST['ad_sc'] ?? 0;
+    $tipe_pekerjaan = $_POST['tipe_pekerjaan'] ?? '';
+
+    // ✅ Query INSERT
     $stmt = $conn->prepare("INSERT INTO teknisi_detail 
-        (teknisi_id, rfs, dc, s_calm, clam_hook, otp, prekso, tiang, tanggal, soc_option, soc_value, precont_json) 
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+        (teknisi_id, rfs, dc, s_calm, clam_hook, otp, prekso, 
+         soc_option, soc_value, precont_json, spliter_json, smoove_json, 
+         ad_sc, tiang, tanggal, tipe_pekerjaan)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
 
-    $stmt->bind_param("isiiiiiissis",
+    // ✅ urutan dan tipe sudah pas
+    $stmt->bind_param(
+        "isiiiiisisssiiss",
         $teknisi_id, $rfs, $dc, $s_calm, $clam_hook, $otp, $prekso,
-        $tiang, $tanggal, $soc_option, $soc_value, $precont_json
+        $soc_option, $soc_value, $precont_json, $spliter_json, $smoove_json,
+        $ad_sc, $tiang, $tanggal, $tipe_pekerjaan
     );
-    $stmt->execute();
-    header("Location: input_material.php?status=added");
-    exit;
+
+    if ($stmt->execute()) {
+        header("Location: input_material.php?status=added");
+        exit;
+    } else {
+        die("Error insert: " . $stmt->error);
+    }
 }
 
+
+
+// ================== UPDATE DETAIL TEKNISI ================== //
 if (isset($_POST['update_detail'])) {
-    $detail_id  = (int)($_POST['id'] ?? 0);
+    $detail_id = (int)($_POST['id'] ?? 0);
     if (!$detail_id) die("Error: id detail tidak valid.");
 
     $teknisi_id = (int)($_POST['teknisi_id'] ?? 0);
     if (!$teknisi_id) die("Error: teknisi_id tidak valid.");
 
-    $rfs        = $_POST['rfs'] ?? null;
-    $dc         = $_POST['dc'] ?: null;
-    $s_calm     = $_POST['s_calm'] ?: null;
-    $clam_hook  = $_POST['clam_hook'] ?: null;
-    $otp        = $_POST['otp'] ?: null;
-    $prekso     = $_POST['prekso'] ?: null;
-    $tiang      = $_POST['tiang'] ?: null;
-    $tanggal    = $_POST['tanggal'] ?: null;
-    $soc_option = $_POST['soc_option'] ?? null;
-    $soc_value  = $_POST['soc_value'] ?: null;
-    $precont_json = json_encode($_POST['precont'] ?? []);
+    // Ambil semua input
+    $rfs            = $_POST['rfs'] ?? '';
+    $dc             = $_POST['dc'] ?? 0;
+    $s_calm         = $_POST['s_calm'] ?? 0;
+    $clam_hook      = $_POST['clam_hook'] ?? 0;
+    $otp            = $_POST['otp'] ?? 0;
+    $prekso         = $_POST['prekso'] ?? 0;
+    $tiang          = $_POST['tiang'] ?? 0;
+    $tanggal        = $_POST['tanggal'] ?? date('Y-m-d');
 
+    // ✅ Pastikan nilai SOC tidak null
+    $soc_option     = !empty($_POST['soc_option']) ? $_POST['soc_option'] : '-';
+    $soc_value      = isset($_POST['soc_value']) && $_POST['soc_value'] !== '' ? (int)$_POST['soc_value'] : 0;
+
+    $precont_json   = json_encode($_POST['precont'] ?? []);
+    $spliter_json   = json_encode($_POST['spliter'] ?? []);
+    $smoove_json    = json_encode($_POST['smoove'] ?? []);
+    $ad_sc          = $_POST['ad_sc'] ?? 0;
+    $tipe_pekerjaan = $_POST['tipe_pekerjaan'] ?? '';
+
+    // ✅ Query UPDATE (kolom dan tipe disesuaikan 1:1 dengan INSERT)
     $stmt = $conn->prepare("UPDATE teknisi_detail SET 
-        teknisi_id=?, rfs=?, dc=?, s_calm=?, clam_hook=?, otp=?, prekso=?, tiang=?, tanggal=?, soc_option=?, soc_value=?, precont_json=? 
+        teknisi_id=?, rfs=?, dc=?, s_calm=?, clam_hook=?, otp=?, prekso=?, 
+        soc_option=?, soc_value=?, precont_json=?, spliter_json=?, smoove_json=?, 
+        ad_sc=?, tiang=?, tanggal=?, tipe_pekerjaan=?
         WHERE id=?");
 
-    $stmt->bind_param("isiiiiiissisi",
+    // ✅ urutan dan tipe sama seperti INSERT, dengan tambahan 'i' terakhir untuk id
+    $stmt->bind_param(
+        "isiiiiisisssiissi",
         $teknisi_id, $rfs, $dc, $s_calm, $clam_hook, $otp, $prekso,
-        $tiang, $tanggal, $soc_option, $soc_value, $precont_json, $detail_id
+        $soc_option, $soc_value, $precont_json, $spliter_json, $smoove_json,
+        $ad_sc, $tiang, $tanggal, $tipe_pekerjaan, $detail_id
     );
-    $stmt->execute();
-    header("Location: data_material.php?status=updated");
-    exit;
+
+    if ($stmt->execute()) {
+        header("Location: data_material.php?status=updated");
+        exit;
+    } else {
+        die("Error update: " . $stmt->error);
+    }
 }
 
+
+
+// ================== DELETE DETAIL TEKNISI ================== //
 if (isset($_GET['delete_detail'])) {
     $stmt = $conn->prepare("DELETE FROM teknisi_detail WHERE id=?");
     $stmt->bind_param("i", $_GET['delete_detail']);
@@ -191,6 +246,8 @@ if (isset($_GET['delete_detail'])) {
     header("Location: data_material.php?status=deleted");
     exit;
 }
+
+
 
 // ================== TAMBAH MATERIAL DIPAKAI ================== //
 if (isset($_POST['submit_material'])) {
@@ -217,10 +274,12 @@ if (isset($_POST['submit_material'])) {
     $soc_option        = $_POST['soc_option'] ?? null;
     $soc_value         = (int)($_POST['soc_value'] ?? 0);
     $precont_json      = json_encode($_POST['precont'] ?? []);
+    $spliter_json      = json_encode($_POST['spliter'] ?? []);
+    $smoove_json       = json_encode($_POST['smoove'] ?? []);
+    $ad_sc             = (int)($_POST['ad_sc'] ?? 0);
+    $tipe_pekerjaan    = $_POST['tipe_pekerjaan'] ?? null;
     $tiang             = (int)($_POST['tiang'] ?? 0);
     $tanggal           = $_POST['tanggal'] ?: date('Y-m-d');
-    $precont_option    = (int)($_POST['precont_option'] ?? 0);
-    $precont_value     = (int)($_POST['precont_value'] ?? 0);
     $deskripsi_masalah = $_POST['deskripsi_masalah'] ?? null;
     $status_masalah    = "Belum Dilihat";
 
@@ -228,16 +287,12 @@ if (isset($_POST['submit_material'])) {
     $dc_foto = null;
     if (isset($_FILES['dc_foto']) && $_FILES['dc_foto']['error'] === 0) {
         $target_dir = __DIR__ . "/uploads/";
-
-        if (!file_exists($target_dir)) {
-            mkdir($target_dir, 0777, true);
-        }
+        if (!file_exists($target_dir)) mkdir($target_dir, 0777, true);
 
         $foto_nama = time() . "_" . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($_FILES["dc_foto"]["name"]));
         $target_file = $target_dir . $foto_nama;
 
         if (move_uploaded_file($_FILES["dc_foto"]["tmp_name"], $target_file)) {
-            // simpan path relatif (bukan absolut)
             $dc_foto = "uploads/" . $foto_nama;
         }
     }
@@ -245,17 +300,17 @@ if (isset($_POST['submit_material'])) {
     // ================== SIMPAN KE DATABASE ================== //
     $stmt = $conn->prepare("
         INSERT INTO material_used (
-            user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso, 
-            soc_option, soc_value, precont_json, tiang, tanggal, 
-            precont_option, precont_value, dc_foto, deskripsi_masalah, status_masalah
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso,
+            soc_option, soc_value, precont_json, spliter_json, smoove_json, ad_sc, tipe_pekerjaan,
+            tiang, tanggal, dc_foto, deskripsi_masalah, status_masalah
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-        "iisiiiiisissiiisss",
+        "iisiiiiisisssissssss",
         $user_id, $teknisi_id, $wo, $dc, $s_calm, $clam_hook, $otp, $prekso,
-        $soc_option, $soc_value, $precont_json, $tiang, $tanggal,
-        $precont_option, $precont_value, $dc_foto, $deskripsi_masalah, $status_masalah
+        $soc_option, $soc_value, $precont_json, $spliter_json, $smoove_json,
+        $ad_sc, $tipe_pekerjaan, $tiang, $tanggal, $dc_foto, $deskripsi_masalah, $status_masalah
     );
 
     if ($stmt->execute()) {
@@ -272,16 +327,14 @@ if (isset($_POST['submit_material'])) {
 if (isset($_GET['delete_material'])) {
     $id = (int) $_GET['delete_material'];
 
-    // Ambil foto untuk dihapus dari folder
+    // Hapus file foto
     $res = $conn->query("SELECT dc_foto FROM material_used WHERE id=$id");
     if ($res && $row = $res->fetch_assoc()) {
         $foto_path = __DIR__ . "/" . $row['dc_foto'];
-        if (is_file($foto_path)) {
-            unlink($foto_path);
-        }
+        if (is_file($foto_path)) unlink($foto_path);
     }
 
-    // Hapus dari database
+    // Hapus data
     $del = $conn->prepare("DELETE FROM material_used WHERE id=?");
     $del->bind_param("i", $id);
     if ($del->execute()) {
@@ -292,32 +345,36 @@ if (isset($_GET['delete_material'])) {
     }
 }
 
+
+
 // ================== UPDATE MATERIAL DIPAKAI ================== //
 if (isset($_POST['update_material'])) {
     $id = (int)($_POST['id'] ?? 0);
     if ($id <= 0) die("Error: ID tidak valid.");
 
-    $teknisi_id = (int)($_POST['teknisi_id'] ?? 0);
-    $user_id    = (int)($_POST['user_id'] ?? 0);
-    $wo         = $_POST['wo'] ?? null;
-    $dc         = (int)($_POST['dc'] ?? 0);
-    $s_calm     = (int)($_POST['s_calm'] ?? 0);
-    $clam_hook  = (int)($_POST['clam_hook'] ?? 0);
-    $otp        = (int)($_POST['otp'] ?? 0);
-    $prekso     = (int)($_POST['prekso'] ?? 0);
-    $soc_option = $_POST['soc_option'] ?? null;
-    $soc_value  = (int)($_POST['soc_value'] ?? 0);
-    $precont_json   = json_encode($_POST['precont'] ?? []);
-    $tiang          = (int)($_POST['tiang'] ?? 0);
-    $tanggal        = $_POST['tanggal'] ?: date('Y-m-d');
+    $teknisi_id       = (int)($_POST['teknisi_id'] ?? 0);
+    $user_id          = (int)($_POST['user_id'] ?? 0);
+    $wo               = $_POST['wo'] ?? null;
+    $dc               = (int)($_POST['dc'] ?? 0);
+    $s_calm           = (int)($_POST['s_calm'] ?? 0);
+    $clam_hook        = (int)($_POST['clam_hook'] ?? 0);
+    $otp              = (int)($_POST['otp'] ?? 0);
+    $prekso           = (int)($_POST['prekso'] ?? 0);
+    $soc_option       = $_POST['soc_option'] ?? null;
+    $soc_value        = (int)($_POST['soc_value'] ?? 0);
+    $precont_json     = json_encode($_POST['precont'] ?? []);
+    $spliter_json     = json_encode($_POST['spliter'] ?? []);
+    $smoove_json      = json_encode($_POST['smoove'] ?? []);
+    $ad_sc            = (int)($_POST['ad_sc'] ?? 0);
+    $tipe_pekerjaan   = $_POST['tipe_pekerjaan'] ?? null;
+    $tiang            = (int)($_POST['tiang'] ?? 0);
+    $tanggal          = $_POST['tanggal'] ?: date('Y-m-d');
     $deskripsi_masalah = $_POST['deskripsi_masalah'] ?? null;
 
     // --- Ambil foto lama ---
     $old_foto = null;
     $res = $conn->query("SELECT dc_foto FROM material_used WHERE id=$id");
-    if ($res && $r = $res->fetch_assoc()) {
-        $old_foto = $r['dc_foto'];
-    }
+    if ($res && $r = $res->fetch_assoc()) $old_foto = $r['dc_foto'];
 
     // --- Upload foto baru jika ada ---
     $dc_foto = $old_foto;
@@ -325,9 +382,7 @@ if (isset($_POST['update_material'])) {
         $target_dir = __DIR__ . "/uploads/";
         if (!file_exists($target_dir)) mkdir($target_dir, 0777, true);
 
-        if ($old_foto && file_exists(__DIR__ . "/" . $old_foto)) {
-            unlink(__DIR__ . "/" . $old_foto);
-        }
+        if ($old_foto && file_exists(__DIR__ . "/" . $old_foto)) unlink(__DIR__ . "/" . $old_foto);
 
         $foto_nama = time() . "_" . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($_FILES["dc_foto"]["name"]));
         $target_file = $target_dir . $foto_nama;
@@ -337,42 +392,46 @@ if (isset($_POST['update_material'])) {
         }
     }
 
-    // --- Update ke database ---
-    $stmt = $conn->prepare("
-        UPDATE material_used SET
-            user_id = ?,
-            teknisi_id = ?, 
-            wo = ?, 
-            dc = ?, 
-            s_calm = ?, 
-            clam_hook = ?, 
-            otp = ?, 
-            prekso = ?, 
-            soc_option = ?, 
-            soc_value = ?, 
-            precont_json = ?, 
-            tiang = ?, 
-            tanggal = ?, 
-            dc_foto = ?, 
-            deskripsi_masalah = ?
-        WHERE id = ?
-    ");
+   // --- Update ke database ---
+$stmt = $conn->prepare("
+    UPDATE material_used SET
+        user_id = ?,
+        teknisi_id = ?, 
+        wo = ?, 
+        dc = ?, 
+        s_calm = ?, 
+        clam_hook = ?, 
+        otp = ?, 
+        prekso = ?, 
+        soc_option = ?, 
+        soc_value = ?, 
+        precont_json = ?, 
+        spliter_json = ?, 
+        smoove_json = ?, 
+        ad_sc = ?, 
+        tipe_pekerjaan = ?, 
+        tiang = ?, 
+        tanggal = ?, 
+        dc_foto = ?, 
+        deskripsi_masalah = ?
+    WHERE id = ?
+");
 
-    $stmt->bind_param(
-        "iisiiiiisisssssi",
-        $user_id, $teknisi_id, $wo, $dc, $s_calm, $clam_hook, $otp, $prekso,
-        $soc_option, $soc_value, $precont_json, $tiang, $tanggal,
-        $dc_foto, $deskripsi_masalah, $id
-    );
+$stmt->bind_param(
+    "iisiiiiisisssisssssi",
+    $user_id, $teknisi_id, $wo, $dc, $s_calm, $clam_hook, $otp, $prekso,
+    $soc_option, $soc_value, $precont_json, $spliter_json, $smoove_json,
+    $ad_sc, $tipe_pekerjaan, $tiang, $tanggal, $dc_foto, $deskripsi_masalah, $id
+);
 
-    if ($stmt->execute()) {
-        header("Location: data_material_used.php?status=updated");
-        exit;
-    } else {
-        die("Gagal memperbarui: " . $stmt->error);
-    }
+if ($stmt->execute()) {
+    header("Location: data_material_used.php?status=updated");
+    exit;
+} else {
+    die("Gagal memperbarui: " . $stmt->error);
 }
 
+}
 
 
 
