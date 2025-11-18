@@ -40,6 +40,11 @@ if (isset($_GET['delete_material'])) {
   }
 }
 
+
+
+
+
+
 ?>
 
 <!DOCTYPE html>
@@ -432,6 +437,48 @@ if (isset($_GET['delete_material'])) {
 <?php endif; ?>
 
 
+  <!-- ====================== CSS STYLE ====================== -->
+
+          <style>
+
+.table-material th, .table-material td {
+  vertical-align: middle;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.table-material td:nth-child(5) { /* Deskripsi Masalah */
+  white-space: normal !important;
+  max-width: 280px;
+  word-break: break-word;
+}
+
+.table-material img {
+  width: 55px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.status-belum   { background: #ffecec !important; }
+.status-dilihat { background: #fff9e6 !important; }
+.status-selesai { background: #e8f4ff !important; }
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Header tabel lebih rapih */
+.table-material thead th {
+  background-color: #2c3e50;
+  color: #fff;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+</style>
+
 
           <!-- ====================== TABEL DATA ====================== -->
 <div class="row mt-4">
@@ -441,122 +488,120 @@ if (isset($_GET['delete_material'])) {
         <p class="card-title mb-0">Rekap Data Material</p>
         <div class="table-responsive">
 
+<?php
+// Ambil semua data material_used + teknisi
+$res = $conn->query("
+  SELECT m.*, t.namatek 
+  FROM material_used m
+  JOIN teknisi t ON m.teknisi_id = t.id
+  ORDER BY m.id DESC
+");
+
+// Siapkan array kelompok berdasarkan status
+$kelompok = [
+  "Belum Dilihat" => [],
+  "Sudah Dilihat" => [],
+  "Selesai"       => []
+];
+
+if ($res && $res->num_rows > 0) {
+  while ($row = $res->fetch_assoc()) {
+    $status = $row['status_masalah'] ?? 'Belum Dilihat';
+    if (!isset($kelompok[$status])) $kelompok[$status] = [];
+    $kelompok[$status][] = $row;
+  }
+}
+
+// Fungsi render tabel
+function renderTabel($data, $judul, $warna)
+{
+?>
+  <h5 class="mt-4 mb-3 text-<?= $warna ?> fw-bold"><?= $judul ?></h5>
+  <table class="table table-striped table-bordered table-hover table-material mb-5">
+    <thead>
+      <tr>
+        <th style="width: 40px;">No</th>
+        <th style="width: 150px;">Nama Teknisi</th>
+        <th style="width: 110px;">Tanggal</th>
+        <th style="width: 80px;">WO</th>
+        <th style="width: 280px;">Deskripsi Masalah</th>
+        <th style="width: 90px;">Foto DC</th>
+        <th style="width: 135px;">Status Masalah</th>
+        <th style="width: 120px;">Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php if (!empty($data)): $no = 1; ?>
+        <?php foreach ($data as $row): ?>
           <?php
-          // Ambil semua data material_used + teknisi
-          $res = $conn->query("
-            SELECT m.*, t.namatek 
-            FROM material_used m
-            JOIN teknisi t ON m.teknisi_id = t.id
-            ORDER BY m.id DESC
-          ");
+          $statusClass = ($row['status_masalah'] == "Belum Dilihat")
+            ? "status-belum"
+            : (($row['status_masalah'] == "Sudah Dilihat")
+              ? "status-dilihat"
+              : "status-selesai");
 
-          // Siapkan array kelompok berdasarkan status
-          $kelompok = [
-            "Belum Dilihat" => [],
-            "Sudah Dilihat" => [],
-            "Selesai"       => []
-          ];
-
-          if ($res && $res->num_rows > 0) {
-            while ($row = $res->fetch_assoc()) {
-              $status = $row['status_masalah'] ?? 'Belum Dilihat';
-              $kelompok[$status][] = $row;
-            }
-          }
-
-          // Fungsi untuk render tabel per status
-          function renderTabel($data, $judul, $warna)
-          {
+          $namaFile = !empty($row['dc_foto']) ? basename($row['dc_foto']) : null;
+          $pathFoto = $namaFile ? "../../uploads/" . $namaFile : null;
           ?>
-            <h5 class="mt-4 mb-3 text-<?= $warna ?> fw-bold"><?= $judul ?></h5>
-            <table class="table table-striped table-borderless mb-5">
-              <thead>
-                <tr>
-                  <th>No</th>
-                  <th>Nama Teknisi</th>
-                  <th>Tanggal</th>
-                  <th>WO</th>
-                  <th>Deskripsi Masalah</th>
-                  <th>Foto DC</th>
-                  <th>Status Masalah</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php if (!empty($data)): $no = 1; ?>
-                  <?php foreach ($data as $row): ?>
-                    <?php
-                    $statusClass = ($row['status_masalah'] == "Belum Dilihat")
-                      ? "status-belum"
-                      : (($row['status_masalah'] == "Sudah Dilihat")
-                        ? "status-dilihat"
-                        : "status-selesai");
-                    ?>
-                    <tr class="<?= $statusClass ?>">
-                      <td><?= $no++ ?></td>
-                      <td><?= htmlspecialchars($row['namatek']) ?></td>
-                      <td><?= htmlspecialchars($row['tanggal']) ?></td>
-                      <td><?= htmlspecialchars($row['wo']) ?></td>
-                      <td><?= htmlspecialchars($row['deskripsi_masalah'] ?? '-') ?></td>
-                      <td>
-                        <?php if (!empty($row['dc_foto'])): ?>
-                          <?php
-                          $namaFile = basename($row['dc_foto']);
-                          $pathFoto = "../../uploads/" . $namaFile;
-                          ?>
-                          <a href="<?= $pathFoto; ?>" target="_blank">
-                            <img src="<?= $pathFoto; ?>" alt="Foto DC" width="60" class="rounded shadow-sm">
-                          </a>
-                        <?php else: ?>
-                          ❌ Tidak ada foto
-                        <?php endif; ?>
-                      </td>
+          <tr class="<?= $statusClass ?>">
+            <td><?= $no++ ?></td>
+            <td><?= htmlspecialchars($row['namatek']) ?></td>
+            <td><?= htmlspecialchars($row['tanggal']) ?></td>
+            <td><?= htmlspecialchars($row['wo']) ?></td>
+            <td><?= htmlspecialchars($row['deskripsi_masalah'] ?? '-') ?></td>
+            <td>
+              <?php if ($pathFoto): ?>
+                <a href="<?= $pathFoto ?>" target="_blank">
+                  <img src="<?= $pathFoto ?>" alt="Foto DC">
+                </a>
+              <?php else: ?>
+                ❌ Tidak ada foto
+              <?php endif; ?>
+            </td>
+            <td>
+              <form method="POST" action="">
+                <input type="hidden" name="id_status_masalah" value="<?= $row['id'] ?>">
+                <select name="status_masalah" class="form-select form-select-sm" onchange="this.form.submit()">
+                  <option value="Belum Dilihat" <?= $row['status_masalah'] == "Belum Dilihat" ? "selected" : "" ?>>Belum Dilihat</option>
+                  <option value="Sudah Dilihat" <?= $row['status_masalah'] == "Sudah Dilihat" ? "selected" : "" ?>>Sudah Dilihat</option>
+                  <option value="Selesai" <?= $row['status_masalah'] == "Selesai" ? "selected" : "" ?>>Selesai</option>
+                </select>
+              </form>
+            </td>
+            <td>
+              <a href="?edit_detail=<?= $row['id'] ?>" class="btn btn-sm btn-warning">
+                <i class="bi bi-pencil"></i> Update
+              </a>
+              <a href="foto_material_used.php?delete_material=<?= $row['id'] ?>"
+                class="btn btn-sm btn-danger"
+                onclick="return confirm('Yakin ingin menghapus data ini?')">
+                <i class="bi bi-trash"></i> Delete
+              </a>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <tr>
+          <td colspan="8" class="text-center text-muted">Tidak ada data untuk kategori ini.</td>
+        </tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
+<?php
+} // end func
 
-                      <td>
-                        <form method="POST" action="">
-                          <input type="hidden" name="id_status_masalah" value="<?= $row['id'] ?>">
-                          <select name="status_masalah" class="form-select form-select-sm" onchange="this.form.submit()">
-                            <option value="Belum Dilihat" <?= $row['status_masalah'] == "Belum Dilihat" ? "selected" : "" ?>>Belum Dilihat</option>
-                            <option value="Sudah Dilihat" <?= $row['status_masalah'] == "Sudah Dilihat" ? "selected" : "" ?>>Sudah Dilihat</option>
-                            <option value="Selesai" <?= $row['status_masalah'] == "Selesai" ? "selected" : "" ?>>Selesai</option>
-                          </select>
-                        </form>
-                      </td>
-
-                      <td>
-                        <a href="?edit_detail=<?= $row['id'] ?>" class="btn btn-sm btn-warning">
-                          <i class="bi bi-pencil"></i>
-                        </a>
-
-                        <a href="foto_material_used.php?delete_material=<?= $row['id'] ?>"
-                          class="btn btn-sm btn-danger"
-                          onclick="return confirm('Yakin ingin menghapus data ini?')">
-                          <i class="bi bi-trash"></i>
-                        </a>
-                      </td>
-                    </tr>
-                  <?php endforeach; ?>
-                <?php else: ?>
-                  <tr>
-                    <td colspan="8" class="text-center text-muted">Tidak ada data untuk kategori ini.</td>
-                  </tr>
-                <?php endif; ?>
-              </tbody>
-            </table>
-          <?php
-          } // akhir fungsi renderTabel
-
-          // Tampilkan masing-masing bagian
-          renderTabel($kelompok["Belum Dilihat"], "🟢 Belum Dilihat", "success");
-          renderTabel($kelompok["Sudah Dilihat"], "🟡 Sudah Dilihat", "warning");
-          renderTabel($kelompok["Selesai"], "🔵 Selesai", "info");
-          ?>
+// Tampilkan tabel status
+renderTabel($kelompok["Belum Dilihat"], "🟢 Belum Dilihat", "success");
+renderTabel($kelompok["Sudah Dilihat"], "🟡 Sudah Dilihat", "warning");
+renderTabel($kelompok["Selesai"], "🔵 Selesai", "info");
+?>
 
         </div>
       </div>
     </div>
   </div>
 </div>
+
 
 
 
