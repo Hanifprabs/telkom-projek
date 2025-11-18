@@ -352,8 +352,24 @@ if (isset($_POST['update_material'])) {
     $id = (int)($_POST['id'] ?? 0);
     if ($id <= 0) die("Error: ID tidak valid.");
 
-    $teknisi_id       = (int)($_POST['teknisi_id'] ?? 0);
-    $user_id          = (int)($_POST['user_id'] ?? 0);
+    $teknisi_id       = !empty($_POST['teknisi_id']) ? (int)$_POST['teknisi_id'] : null;
+    $user_id_post     = $_POST['user_id'] ?? null;
+
+    // Validasi user_id agar tidak melanggar FK
+    if ($user_id_post === "" || $user_id_post === null) {
+        $user_id = null;
+    } else {
+        $user_id = (int)$user_id_post;
+        $cekUser = $conn->prepare("SELECT id FROM users WHERE id = ?");
+        $cekUser->bind_param("i", $user_id);
+        $cekUser->execute();
+        $resUser = $cekUser->get_result();
+        if ($resUser->num_rows === 0) {
+            $user_id = null; // Jika tidak valid set NULL
+        }
+        $cekUser->close();
+    }
+
     $wo               = $_POST['wo'] ?? null;
     $dc               = (int)($_POST['dc'] ?? 0);
     $s_calm           = (int)($_POST['s_calm'] ?? 0);
@@ -392,46 +408,30 @@ if (isset($_POST['update_material'])) {
         }
     }
 
-   // --- Update ke database ---
-$stmt = $conn->prepare("
-    UPDATE material_used SET
-        user_id = ?,
-        teknisi_id = ?, 
-        wo = ?, 
-        dc = ?, 
-        s_calm = ?, 
-        clam_hook = ?, 
-        otp = ?, 
-        prekso = ?, 
-        soc_option = ?, 
-        soc_value = ?, 
-        precont_json = ?, 
-        spliter_json = ?, 
-        smoove_json = ?, 
-        ad_sc = ?, 
-        tipe_pekerjaan = ?, 
-        tiang = ?, 
-        tanggal = ?, 
-        dc_foto = ?, 
-        deskripsi_masalah = ?
-    WHERE id = ?
-");
+    // --- UPDATE ke database ---
+    $stmt = $conn->prepare("
+        UPDATE material_used SET
+            user_id = ?, teknisi_id = ?, wo = ?, dc = ?, s_calm = ?, clam_hook = ?, otp = ?, prekso = ?,
+            soc_option = ?, soc_value = ?, precont_json = ?, spliter_json = ?, smoove_json = ?, ad_sc = ?,
+            tipe_pekerjaan = ?, tiang = ?, tanggal = ?, dc_foto = ?, deskripsi_masalah = ?
+        WHERE id = ?
+    ");
 
-$stmt->bind_param(
-    "iisiiiiisisssisssssi",
-    $user_id, $teknisi_id, $wo, $dc, $s_calm, $clam_hook, $otp, $prekso,
-    $soc_option, $soc_value, $precont_json, $spliter_json, $smoove_json,
-    $ad_sc, $tipe_pekerjaan, $tiang, $tanggal, $dc_foto, $deskripsi_masalah, $id
-);
+    $stmt->bind_param(
+        "iisiiiiisisssisssssi",
+        $user_id, $teknisi_id, $wo, $dc, $s_calm, $clam_hook, $otp, $prekso,
+        $soc_option, $soc_value, $precont_json, $spliter_json, $smoove_json,
+        $ad_sc, $tipe_pekerjaan, $tiang, $tanggal, $dc_foto, $deskripsi_masalah, $id
+    );
 
-if ($stmt->execute()) {
-    header("Location: data_material_used.php?status=updated");
-    exit;
-} else {
-    die("Gagal memperbarui: " . $stmt->error);
+    if ($stmt->execute()) {
+        header("Location: data_material_used.php?status=updated");
+        exit;
+    } else {
+        die("Gagal memperbarui: " . $stmt->error);
+    }
 }
 
-}
 
 
 
@@ -485,5 +485,38 @@ if (isset($_GET['edit_material'])) {
         if ($tek) $editTeknisiLabel = $tek['namatek'];
     }
 }
+
+
+
+
+// ================== DELETE USER ================== //
+if (isset($_GET['delete_user'])) {
+    $id = (int) $_GET['delete_user'];
+
+    // Cek apakah user ada
+    $cek = $conn->prepare("SELECT id FROM users WHERE id=?");
+    $cek->bind_param("i", $id);
+    $cek->execute();
+    $result = $cek->get_result();
+
+    if ($result->num_rows === 0) {
+        die("User tidak ditemukan.");
+    }
+
+    // Hapus user
+    $del = $conn->prepare("DELETE FROM users WHERE id=?");
+    $del->bind_param("i", $id);
+
+    if ($del->execute()) {
+        header("Location: info_login.php?status=deleted");
+        exit;
+    } else {
+        die("Gagal menghapus user: " . $del->error);
+    }
+}
+/* ===========================
+   AMBIL SEMUA DATA USER
+=========================== */
+$users = $conn->query("SELECT * FROM users ORDER BY id DESC");
 
 ?>

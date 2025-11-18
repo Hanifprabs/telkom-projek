@@ -709,6 +709,7 @@ $conn->close();
               <ul class="nav flex-column sub-menu">
                 <li class="nav-item"><a class="nav-link" href="pages/forms/input_teknisi.php">Tambah Teknisi</a></li>
                 <li class="nav-item"><a class="nav-link" href="pages/forms/basic_elements.php">Data Teknisi</a></li>
+                <li class="nav-item"><a class="nav-link" href="pages/forms/info_login.php">Info Login</a></li>
               </ul>
             </div>
           </li>
@@ -899,6 +900,16 @@ $conn->close();
       </div>
     </div>
 
+
+    <style>
+#material-table th, 
+#material-table td {
+    white-space: nowrap;
+    font-size: 12px;     /* kecilkan teks */
+    padding: 4px;        /* rapatkan cell */
+}
+</style>
+
   <!-- ================= REKAP SISA MATERIAL ================= -->
 <div class="row mt-4" id="rekapMaterial">
   <div class="col-md-12 grid-margin stretch-card">
@@ -919,7 +930,7 @@ $conn->close();
       </div>
 
       <div class="card-body p-2" id="rekapTableWrapper">
-        <div class="table-responsive">
+        <div>
           <table class="table table-bordered table-striped table-sm align-middle text-center" id="material-table">
             <thead class="table-dark">
               <tr>

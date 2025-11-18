@@ -179,6 +179,7 @@ if ($_SESSION['role'] !== 'admin') {
         <ul class="nav flex-column sub-menu">
           <li class="nav-item"><a class="nav-link" href="input_teknisi.php">Tambah Teknisi</a></li>
           <li class="nav-item"><a class="nav-link" href="basic_elements.php">Data Teknisi</a></li>
+          <li class="nav-item"><a class="nav-link" href="info_login.php">Info Login</a></li>
         </ul>
       </div>
     </li>
@@ -300,9 +301,9 @@ if ($_SESSION['role'] !== 'admin') {
           <!-- Tombol Submit -->
           <div class="mt-3">
             <?php if (isset($editTeknisi) && $editTeknisi): ?>
-              <button type="submit" name="update" class="btn btn-warning">💾 Update</button>
+              <button type="submit" name="update" class="btn btn-warning">Update</button>
             <?php else: ?>
-              <button type="submit" name="submit" class="btn btn-primary">💾 Simpan</button>
+              <button type="submit" name="submit" class="btn btn-primary">Simpan</button>
             <?php endif; ?>
             <a href="basic_elements.php" class="btn btn-secondary">Batal</a>
           </div>

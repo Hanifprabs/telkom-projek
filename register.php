@@ -44,10 +44,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $cekUser->execute();
             $cekUser->store_result();
 
-            if ($cekUser->num_rows === 0) {
-                // Masukkan user baru
-                $stmt = $conn->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, 'teknisi')");
-                $stmt->bind_param("ss", $username, $password);
+          if ($cekUser->num_rows === 0) {
+                // Masukkan user baru + simpan NIK ke table users
+                $stmt = $conn->prepare("INSERT INTO users (username, password, role, nik) VALUES (?, ?, 'teknisi', ?)");
+                $stmt->bind_param("sss", $username, $password, $nik);
+
                 if ($stmt->execute()) {
                     $message = "✅ Registrasi berhasil. Silakan login.";
                     $message_type = "success";
@@ -55,10 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $message = "❌ Gagal menyimpan data pengguna.";
                     $message_type = "danger";
                 }
-            } else {
-                $message = "❌ Username sudah digunakan.";
-                $message_type = "danger";
             }
+
         }
     } else {
         $message = "❌ NIK tidak ditemukan di data teknisi.";
@@ -72,14 +71,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Register - Skydash</title>
+<title>Telkom Akses</title>
+     <!-- endinject -->
+    <link rel="shortcut icon" href="assets/images/TLK.png" />
 <link rel="stylesheet" href="assets/vendors/feather/feather.css">
 <link rel="stylesheet" href="assets/vendors/ti-icons/css/themify-icons.css">
 <link rel="stylesheet" href="assets/vendors/css/vendor.bundle.base.css">
 <link rel="stylesheet" href="assets/vendors/font-awesome/css/font-awesome.min.css">
 <link rel="stylesheet" href="assets/vendors/mdi/css/materialdesignicons.min.css">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="shortcut icon" href="assets/images/favicon.png" />
 <style>
 .password-wrapper { position: relative; }
 .toggle-password {

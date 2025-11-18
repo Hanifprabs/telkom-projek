@@ -1,10 +1,47 @@
 <?php
+
+
 include "../../koneksi.php"; // koneksi DB
 require '../../auth_check.php';
 
 // tampilkan error saat pengembangan
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+// ============================
+// DEBUG autoTeknisi
+// ============================
+
+
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$role      = $_SESSION['role'] ?? null;
+$nikLogin  = $_SESSION['nik'] ?? null;
+
+$autoTeknisi = null;
+
+// Jika bukan admin → ambil otomatis berdasarkan NIK
+ // Load data teknisi
+    require '../../koneksi.php';
+    $nikLogin = $_SESSION['nik'];
+
+    $stmt = $conn->prepare("SELECT id, namatek FROM teknisi WHERE nik = ? LIMIT 1");
+    $stmt->bind_param("s", $nikLogin);
+    $stmt->execute();
+    $teknisi = $stmt->get_result()->fetch_assoc();
+// Jika admin → ambil semua teknisi untuk daftar dropdown
+$daftarTeknisi = [];
+if ($role === 'admin') {
+    $q = $conn->query("SELECT id, namatek FROM teknisi ORDER BY namatek ASC");
+    $daftarTeknisi = $q->fetch_all(MYSQLI_ASSOC);
+}
+
+
+
+
 
 // ==================== SIMPAN DATA BARU ====================
 if (isset($_POST['submit_material'])) {
@@ -250,6 +287,7 @@ if (isset($_GET['id'])) {
                 <ul class="nav flex-column sub-menu">
                   <li class="nav-item"><a class="nav-link" href="../forms/input_teknisi.php">Tambah Teknisi</a></li>
                   <li class="nav-item"><a class="nav-link" href="../forms/basic_elements.php">Data Teknisi</a></li>
+                  <li class="nav-item"><a class="nav-link" href="../forms/info_login.php">Info Login</a></li>
                 </ul>
               </div>
             </li>
@@ -311,48 +349,67 @@ if (isset($_GET['id'])) {
                       <input type="hidden" name="id" value="<?= htmlspecialchars($editMaterial['id'] ?? '') ?>">
 
                       <!-- 🔍 CARI TEKNISI -->
-                      <div class="row">
-                        <!-- Kolom: Cari Teknisi -->
-                        <div class="col-md-6">
-                          <div class="form-group position-relative">
-                            <label for="teknisiSearchMaterial" class="form-label fw-bold">Cari Teknisi</label>
-                            <input 
-                              type="text" 
-                              id="teknisiSearchMaterial" 
-                              class="form-control" 
-                              placeholder="Ketik nama teknisi..." 
-                              autocomplete="off" 
-                              value="<?= htmlspecialchars($editTeknisiLabel ?? '') ?>"
-                            >
-                            <input 
-                              type="hidden" 
-                              name="teknisi_id" 
-                              id="teknisiIdMaterial" 
-                              value="<?= htmlspecialchars($editMaterial['teknisi_id'] ?? '') ?>"
-                            >
-                            <div 
-                              id="teknisiListMaterial" 
-                              class="list-group position-absolute w-100 shadow-sm mt-1"
-                            ></div>
-                          </div>
-                        </div>
+                    <div class="row">
 
-                        <!-- Kolom: Nomor WO -->
-                        <div class="col-md-6">
-                          <div class="form-group">
-                            <label for="wo" class="form-label fw-bold">Nomor WO</label>
-                            <input 
-                              type="text" 
-                              name="wo" 
-                              id="wo" 
-                              class="form-control" 
-                              placeholder="Masukkan nomor WO..." 
-                              value="<?= htmlspecialchars($editMaterial['wo'] ?? '') ?>" 
-                              required
-                            >
-                          </div>
-                        </div>
-                      </div>
+  <!-- Kolom: Cari Teknisi -->
+  <div class="col-md-6">
+    <div class="form-group position-relative">
+      <label for="teknisiSearchMaterial" class="form-label fw-bold">Teknisi</label>
+
+      <?php if ($role === 'admin'): ?>
+          <!-- ADMIN: input + live search -->
+          <input type="text"
+                 id="teknisiSearchMaterial"
+                 class="form-control"
+                 placeholder="Ketik nama teknisi..."
+                 autocomplete="off"
+                 value="<?= htmlspecialchars($editTeknisiLabel ?? '') ?>">
+
+          <input type="hidden"
+                 name="teknisi_id"
+                 id="teknisiIdMaterial"
+                 value="<?= htmlspecialchars($selectedTeknisiId ?? '') ?>">
+
+          <div id="teknisiListMaterial"
+               class="list-group position-absolute w-100 shadow-sm mt-1"></div>
+
+      <?php else: ?>
+          <!-- TEKNISI LOGIN: otomatis muncul tanpa bisa diganti -->
+          <input type="text"
+                 class="form-control bg-light"
+                 value="<?= $teknisi['namatek'] ?? '' ?>" readonly>
+
+          <input type="hidden"
+                 name="teknisi_id"
+                 value="<?= $teknisi['id'] ?? '' ?>">
+
+      <?php endif; ?>
+
+    </div>
+
+
+
+    </div>
+
+
+  <!-- Kolom: Nomor WO -->
+  <div class="col-md-6">
+    <div class="form-group">
+      <label for="wo" class="form-label fw-bold">Nomor WO</label>
+      <input 
+        type="text" 
+        name="wo" 
+        id="wo" 
+        class="form-control" 
+        placeholder="Masukkan nomor WO..." 
+        value="<?= htmlspecialchars($editMaterial['wo'] ?? '') ?>" 
+        required
+      >
+    </div>
+  </div>
+
+</div>
+
 
                       <!-- MATERIAL -->
                       <div class="row">

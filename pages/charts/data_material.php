@@ -174,6 +174,7 @@ $sql = "SELECT td.id,
         <ul class="nav flex-column sub-menu">
           <li class="nav-item"><a class="nav-link" href="../forms/input_teknisi.php">Tambah Teknisi</a></li>
           <li class="nav-item"><a class="nav-link" href="../forms/basic_elements.php">Data Teknisi</a></li>
+          <li class="nav-item"><a class="nav-link" href="../forms/info_login.php">Info Login</a></li>
         </ul>
       </div>
     </li>

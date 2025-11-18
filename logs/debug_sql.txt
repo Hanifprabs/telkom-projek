@@ -66,3 +66,103 @@
 📣 Status: ✅ BERHASIL SIMPAN DATA
 =============================
 
+=============================
+⏰ 2025-11-17 03:01:36
+👤 User ID: 5820531737
+📋 Query: INSERT INTO material_used (
+        user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso,
+        soc_option, soc_value, precont_json, spliter_json, smoove_json,
+        ad_sc, tipe_pekerjaan, tiang, tanggal,
+        precont_option, precont_value, dc_foto, deskripsi_masalah, status_masalah
+    ) VALUES (
+        '5820531737', '9', '2222', '2', '3', '3', '2', '1',
+        'sum', '3', '{\"50\":\"2\",\"75\":\"0\",\"80\":\"0\",\"100\":\"0\",\"120\":\"2\",\"135\":\"2\",\"150\":\"0\",\"180\":\"0\"}', '{\"1.2\":\"0\",\"1.4\":\"2\",\"1.8\":\"4\",\"1.16\":\"1\"}', '{\"Kecil\":\"0\",\"Tipe 3\":\"0\"}',
+        '2', 'Maintenance', '1', '2025-11-17',
+        '', '', 'uploads/file_8.jpg', 'Percobaan 2', 'Belum Dilihat'
+    )
+📣 Status: ✅ BERHASIL SIMPAN DATA
+=============================
+
+=============================
+⏰ 2025-11-17 04:16:03
+👤 User ID: 5820531737
+📋 Query: INSERT INTO material_used (
+        user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso,
+        soc_option, soc_value, precont_json, spliter_json, smoove_json,
+        ad_sc, tipe_pekerjaan, tiang, tanggal,
+        precont_option, precont_value, dc_foto, deskripsi_masalah, status_masalah
+    ) VALUES (
+        '5820531737', '9', '2', '3', '2', '1', '1', '0',
+        'sum', '0', '{\"50\":\"4\",\"75\":\"4\",\"80\":\"1\",\"100\":\"1\",\"120\":\"1\",\"135\":\"1\",\"150\":\"1\",\"180\":\"1\"}', '{\"1.2\":\"1\",\"1.4\":\"1\",\"1.8\":\"1\",\"1.16\":\"1\"}', '{\"Kecil\":\"1\",\"Tipe 3\":\"1\"}',
+        '0', 'Mitratel', '2', '2025-11-17',
+        '', '', '', '0', 'Belum Dilihat'
+    )
+📣 Status: ✅ BERHASIL SIMPAN DATA
+=============================
+
+=============================
+⏰ 2025-11-17 09:58:25
+👤 User ID: 8581326564
+📋 Query: INSERT INTO material_used (
+        user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso,
+        soc_option, soc_value, precont_json, spliter_json, smoove_json,
+        ad_sc, tipe_pekerjaan, tiang, tanggal,
+        precont_option, precont_value, dc_foto, deskripsi_masalah, status_masalah
+    ) VALUES (
+        '8581326564', '4', '222', '2', '3', '1', '2', '1',
+        'sum', '2', '{\"50\":\"2\",\"75\":\"2\",\"80\":\"2\",\"100\":\"2\",\"120\":\"0\",\"135\":\"2\",\"150\":\"0\",\"180\":\"0\"}', '{\"1.2\":\"0\",\"1.4\":\"0\",\"1.8\":\"0\",\"1.16\":\"0\"}', '{\"Kecil\":\"2\",\"Tipe 3\":\"1\"}',
+        '2', 'Maintenance', '0', '2025-11-17',
+        '', '', 'uploads/file_9.jpg', 'konslet', 'Belum Dilihat'
+    )
+📣 Status: ✅ BERHASIL SIMPAN DATA
+=============================
+
+=============================
+⏰ 2025-11-18 07:51:38
+👤 User ID: 6156273124
+📋 Query: INSERT INTO material_used (
+        user_id, teknisi_id, wo, dc, s_calm, clam_hook, otp, prekso,
+        soc_option, soc_value, precont_json, spliter_json, smoove_json,
+        ad_sc, tipe_pekerjaan, tiang, tanggal,
+        precont_option, precont_value, dc_foto, deskripsi_masalah, status_masalah
+    ) VALUES (
+        '6156273124', '51', '123', '2', '2', '2', '2', '2',
+        'fuji', '2', '{\"50\":\"2\",\"75\":\"2\",\"80\":\"2\",\"100\":\"2\",\"120\":\"2\",\"135\":\"2\",\"150\":\"2\",\"180\":\"2\"}', '{\"1.2\":\"2\",\"1.4\":\"2\",\"1.8\":\"2\",\"1.16\":\"2\"}', '{\"Kecil\":\"2\",\"Tipe 3\":\"2\"}',
+        '2', 'IOAN', '2', '2025-11-17',
+        '', '', 'uploads/file_10.jpg', '2025-11-17', 'Belum Dilihat'
+    )
+📣 Status: ✅ BERHASIL SIMPAN DATA
+=============================
+
+
+=============================
+⏰ 2025-11-18 09:11:45
+👤 User Telegram: 5820531737
+👤 User DB ID    : 37
+📣 Status        : ✅ BERHASIL SIMPAN DATA
+=============================
+
+
+=============================
+⏰ 2025-11-18 09:16:08
+👤 User Telegram: 8581326564
+👤 User DB ID    : 85
+📣 Status        : ✅ BERHASIL SIMPAN DATA
+=============================
+
+
+=============================
+⏰ 2025-11-18 09:54:00
+👤 User Telegram: 5820531737
+👤 User DB ID    : 37
+📣 Status        : ✅ BERHASIL SIMPAN DATA
+=============================
+
+
+=============================
+⏰ 2025-11-18 09:56:35
+👤 User Telegram: 5820531737
+👤 User DB ID    : 37
+📣 Status        : ✅ BERHASIL SIMPAN DATA
+=============================
+

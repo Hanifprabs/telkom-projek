@@ -1,5 +1,5 @@
 <?php
-include "../../koneksi.php"; // koneksi DB
+include "../../koneksi.php"; 
 
 require '../../auth_check.php';
 if ($_SESSION['role'] !== 'admin') {
@@ -7,36 +7,34 @@ if ($_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// --- Pagination default ---
-$limit  = 10; 
-$page   = isset($_GET['page']) ? max((int)$_GET['page'], 1) : 1;
-$offset = ($page - 1) * $limit;
 
-$totalQuery = $conn->query("SELECT COUNT(*) AS total FROM teknisi");
-$totalRow   = $totalQuery->fetch_assoc();
-$totalData  = $totalRow['total'];
-$totalPages = ceil($totalData / $limit);
 
-// --- Ambil data teknisi default (tanpa filter search) ---
-// Sinkron otomatis: isi idtele teknisi dari telegram_id users (berdasarkan NIK)
-$conn->query("
-  UPDATE teknisi t
-  JOIN users u ON t.nik = u.nik
-  SET t.idtele = u.telegram_id
-  WHERE u.telegram_id IS NOT NULL
+// ====== PAGINATION SETUP ======
+$limit = 10; // jumlah data tiap halaman
+$page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$start = ($page - 1) * $limit;
+
+// Ambil total data untuk hitung jumlah halaman
+$total_users = $conn->query("SELECT COUNT(*) AS total FROM users");
+$total = $total_users->fetch_assoc()['total'];
+$pages = ceil($total / $limit);
+
+
+
+
+// Query data dengan JOIN tabel teknisi berdasarkan nik
+$users = $conn->query("
+    SELECT 
+        users.*, 
+        teknisi.namatek AS nama_teknisi
+    FROM users
+    LEFT JOIN teknisi ON users.nik = teknisi.nik
+    ORDER BY users.id DESC
+    LIMIT $start, $limit
 ");
-
-// Query asli menampilkan data teknisi
-$sql = "
-  SELECT id, namatek, nik, sektor, mitra, idtele, crew, valid
-  FROM teknisi
-  ORDER BY TRIM(LOWER(namatek)) COLLATE utf8mb4_unicode_ci ASC
-  LIMIT $limit OFFSET $offset
-";
-
-$result = $conn->query($sql);
-
 ?>
+
+
 
 
 <!DOCTYPE html>
@@ -192,6 +190,7 @@ $result = $conn->query($sql);
                 <li class="nav-item"><a class="nav-link" href="input_teknisi.php">Input Teknisi</a></li>
               
                 <li class="nav-item"><a class="nav-link" href="basic_elements.php">Data Teknisi</a></li>
+
                 <li class="nav-item"><a class="nav-link" href="info_login.php">Info Login</a></li>
             
               </ul>
@@ -244,267 +243,116 @@ $result = $conn->query($sql);
       </nav>
 
       <!-- partial -->
-      <div class="main-panel">
-        <div class="content-wrapper">
+      <!-- MAIN PANEL -->
+<div class="main-panel">
+    <div class="content-wrapper">
 
+        <h3 class="fw-bold mb-4">👥 Kelola Users</h3>
 
-       <?php
-// Ambil data untuk edit
-if (isset($_GET['edit'])) {
-  $id = intval($_GET['edit']);
-  $stmt = $conn->prepare("SELECT * FROM teknisi WHERE id=?");
-  $stmt->bind_param("i", $id);
-  $stmt->execute();
-  $resultEdit = $stmt->get_result();
-  $dataEdit = $resultEdit->fetch_assoc();
-}
-?>
-
-<!-- ==== Form Tempat Edit Teknisi ==== -->
-<?php if (isset($dataEdit)): ?>
-  <div class="row mt-4">
-    <div class="col-md-12 grid-margin stretch-card">
-      <div class="card">
-        <div class="card-body">
-          <h4 class="mb-4">Edit Data Teknisi</h4>
-          <form method="post">
-            <input type="hidden" name="id" value="<?= $dataEdit['id'] ?>">
-
-            <div class="row">
-              <!-- Kolom Kiri -->
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label>Nama</label>
-                  <input type="text" name="namatek" class="form-control"
-                         value="<?= htmlspecialchars($dataEdit['namatek']) ?>" required>
-                </div>
-                <div class="form-group">
-                  <label>NIK</label>
-                  <input type="text" name="nik" class="form-control"
-                         value="<?= htmlspecialchars($dataEdit['nik']) ?>" required>
-                </div>
-                <div class="form-group">
-                  <label>Sektor</label>
-                  <input type="text" name="sektor" class="form-control"
-                         value="<?= htmlspecialchars($dataEdit['sektor']) ?>">
-                </div>
-                <div class="form-group">
-                  <label>Mitra</label>
-                  <input type="text" name="mitra" class="form-control"
-                         value="<?= htmlspecialchars($dataEdit['mitra']) ?>">
-                </div>
-              </div>
-
-              <!-- Kolom Kanan -->
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label>ID Tele</label>
-                  <input type="text" name="idtele" class="form-control"
-                         value="<?= htmlspecialchars($dataEdit['idtele']) ?>">
-                </div>
-                <div class="form-group">
-                  <label>Crew</label>
-                  <input type="text" name="crew" class="form-control"
-                         value="<?= htmlspecialchars($dataEdit['crew']) ?>">
-                </div>
-                <div class="form-group">
-                  <label>Valid</label>
-                  <select name="valid" class="form-control">
-                    <option value="Y" <?= $dataEdit['valid'] == "Y" ? "selected" : "" ?>>Y</option>
-                    <option value="N" <?= $dataEdit['valid'] == "N" ? "selected" : "" ?>>N</option>
-                  </select>
-                </div>
-              </div>
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white d-flex justify-content-between">
+                <strong>Data Users</strong>
+                <span class="badge bg-light text-dark">
+                    <?= isset($users) && $users ? $users->num_rows : 0 ?> User
+                </span>
             </div>
 
-            <!-- Tombol -->
-            <div class="mt-3">
-              <button type="submit" name="update" class="btn btn-primary">Update</button>
-              <a href="basic_elements.php" class="btn btn-secondary">Batal</a>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
+            <div class="card-body table-responsive">
+                <table class="table table-hover table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Telegram ID</th>
+                            <th>NIK</th>
+                            <th>Nama Teknisi</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Last Login</th>
+                            <th width="90">Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <?php if (isset($users) && $users && $users->num_rows > 0): ?>
+                            <?php while ($row = $users->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?= $row['id'] ?></td>
+                                    <td><?= $row['telegram_id'] ?></td>
+                                    <td><?= $row['nik'] ?></td>
+                                    <td><?= $row['nama_teknisi'] ? $row['nama_teknisi'] : '<span class="text-muted">- Tidak Ada -</span>' ?></td>
+                                    <td><?= $row['username'] ?></td>
+
+                                    <td>
+                                        <?php if ($row['role'] == 'admin'): ?>
+                                            <span class="badge bg-info">Admin</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Teknisi</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($row['status'] == 'active'): ?>
+                                            <span class="badge bg-success">Active</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-danger">Inactive</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?= $row['last_login'] ?></td>
+
+                                    <td>
+                                        <a href="info_login.php?delete_user=<?= $row['id']; ?>"
+                                           onclick="return confirm('Hapus user ini?')"
+                                           class="btn btn-danger btn-sm w-100">
+                                           Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-3">
+                                    Tidak ada data user.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
+
+                    </tbody>
+                </table>
+                <?php if ($pages > 1): ?>
+<nav class="mt-3">
+    <ul class="pagination justify-content-center">
+
+        <!-- Tombol Previous -->
+        <li class="page-item <?= ($page <= 1 ? 'disabled' : '') ?>">
+            <a class="page-link" href="?page=<?= $page-1 ?>">Previous</a>
+        </li>
+
+        <?php for($i = 1; $i <= $pages; $i++): ?>
+            <li class="page-item <?= ($i == $page ? 'active' : '') ?>">
+                <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+            </li>
+        <?php endfor; ?>
+
+        <!-- Tombol Next -->
+        <li class="page-item <?= ($page >= $pages ? 'disabled' : '') ?>">
+            <a class="page-link" href="?page=<?= $page+1 ?>">Next</a>
+        </li>
+
+    </ul>
+</nav>
 <?php endif; ?>
 
-          <style>
-  /* Pastikan tabel menyesuaikan container */
-  .table-responsive {
-    overflow-x: auto;
-  }
-  /* Hilangkan pembungkusan teks hanya jika kolom sempit */
-  .table td, .table th {
-    white-space: nowrap;
-    vertical-align: middle;
-    font-size: 0.9rem;
-    padding: 0.4rem 0.6rem;
-  }
-  /* Batasi lebar teks panjang agar tidak memaksa scroll */
-  .table td:nth-child(2),
-  .table td:nth-child(5) {
-    white-space: normal; /* Izinkan wrap untuk kolom Nama dan Mitra */
-    word-wrap: break-word;
-    max-width: 160px;
-  }
-  /* Buat tombol lebih kompak */
-  .btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-  }
-</style>
-
-
-          <!-- Rekap Data Teknisi -->
-          <style>
-  .table td, .table th {
-    white-space: nowrap;
-    vertical-align: middle;
-    font-size: 0.9rem;
-    padding: 0.4rem 0.6rem;
-  }
-  .table td:nth-child(2), .table td:nth-child(5) {
-    white-space: normal;
-    word-wrap: break-word;
-    max-width: 160px;
-  }
-  .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
-  .pagination { margin-top: 10px; }
-</style>
-
-<div class="row">
-  <div class="col-md-12 grid-margin stretch-card">
-    <div class="card">
-      <div class="card-body">
-        <p class="card-title mb-3">Rekap Data Teknisi</p>
-        <div class="table-responsive">
-  <table class="table table-striped table-sm text-center align-middle">
-    <thead class="table-light">
-      <tr>
-        <th>NO</th>
-        <th>Nama</th>
-        <th>NIK</th>
-        <th>Sektor</th>
-        <th>Mitra</th>
-        <th>ID Tele</th>
-        <th>Crew</th>
-        <th>Valid</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody id="teknisi-table-body">
-      <?php if ($result && $result->num_rows > 0): 
-        $noTek = $offset + 1;
-        while ($row = $result->fetch_assoc()): ?>
-      <tr>
-        <td><?= $noTek++; ?></td>
-        <td class="fw-semibold"><?= htmlspecialchars($row['namatek']) ?></td>
-        <td><?= htmlspecialchars($row['nik']) ?></td>
-        <td><?= htmlspecialchars($row['sektor']) ?></td>
-        <td><?= htmlspecialchars($row['mitra']) ?></td>
-        <td><?= htmlspecialchars($row['idtele']) ?></td>
-        <td><?= htmlspecialchars($row['crew']) ?></td>
-        <td>
-          <span class="badge <?= $row['valid']=="Y"?'bg-success':'bg-danger' ?>">
-            <?= htmlspecialchars($row['valid']) ?>
-          </span>
-        </td>
-        <td>
-          <a href="?edit=<?= $row['id'] ?>&page=<?= $page ?>" class="btn btn-warning btn-sm mb-1">
-            <i class="bi bi-pencil"></i> Edit
-          </a>
-          <a href="?delete=<?= $row['id'] ?>&page=<?= $page ?>" class="btn btn-danger btn-sm"
-             onclick="return confirm('Hapus data ini?')">
-            <i class="bi bi-trash"></i> Delete
-          </a>
-        </td>
-      </tr>
-      <?php endwhile; else: ?>
-      <tr><td colspan="9">Tidak ada data.</td></tr>
-      <?php endif; ?>
-    </tbody>
-  </table>
-</div>
-
-
-        <!-- Navigasi Halaman -->
-        <nav>
-  <ul class="pagination justify-content-center">
-    <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-      <a class="page-link" href="?page=<?= $page-1 ?>">Previous</a>
-    </li>
-    <?php for ($i=1; $i<=$totalPages; $i++): ?>
-      <li class="page-item <?= ($i==$page)?'active':'' ?>">
-        <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
-      </li>
-    <?php endfor; ?>
-    <li class="page-item <?= ($page >= $totalPages) ? 'disabled' : '' ?>">
-      <a class="page-link" href="?page=<?= $page+1 ?>">Next</a>
-    </li>
-  </ul>
-</nav>
-
-
-      </div>
-    </div>
-  </div>
-</div>
-           <!-- Notifikasi Berhasil Tambah Data, Update, Delete -->
-   <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <!-- Script notifikasi PHP -->
-  <?php if (isset($_GET['status'])): ?>
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-          <?php if ($_GET['status'] == 'added'): ?>
-              Swal.fire({
-                  icon: 'success',
-                  title: 'Berhasil!',
-                  text: 'Data berhasil ditambahkan.',
-                  showConfirmButton: false,
-                  timer: 2000
-              });
-          <?php elseif ($_GET['status'] == 'updated'): ?>
-              Swal.fire({
-                  icon: 'success',
-                  title: 'Berhasil!',
-                  text: 'Data berhasil diperbarui.',
-                  showConfirmButton: false,
-                  timer: 2000
-              });
-          <?php elseif ($_GET['status'] == 'deleted'): ?>
-              Swal.fire({
-                  icon: 'success',
-                  title: 'Berhasil!',
-                  text: 'Data berhasil dihapus.',
-                  showConfirmButton: false,
-                  timer: 2000
-              });
-          <?php endif; ?>
-      });
-    </script>
-  <?php endif; ?>
+            </div>
 
         </div>
-        <!-- content-wrapper ends -->
-        <!-- partial:../../partials/_footer.html -->
-        <!-- Footer -->
-                <footer class="footer">
-                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">
-                            © <?= date('Y') ?>. <strong>Telkom Akses</strong> by Telkom Indonesia. All rights reserved.</span>
-                        </span>
-                        <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">
-                            Hand-crafted &amp; made with
-                            <i class="ti-heart text-danger ms-1"></i>
-                        </span>
-                    </div>
-                </footer>
-        <!-- partial -->
-      </div>
-      <!-- main-panel ends -->
+
+    </div>
+
+    
+</div>
+<!-- END MAIN PANEL -->
+
     </div>
     <!-- page-body-wrapper ends -->
   </div>

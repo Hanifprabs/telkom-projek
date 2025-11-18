@@ -3,7 +3,7 @@ require 'koneksi.php';
 session_start();
 
 $message = "";
-$message_type = "danger"; // default warna alert merah untuk login error
+$message_type = "danger"; // default merah
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
@@ -12,8 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($username === '' || $password === '') {
         $message = "❌ Username dan password wajib diisi!";
     } else {
-        // Cek username di DB
-        $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = ?");
+        // Cek username di tabel users
+        $stmt = $conn->prepare("SELECT id, password, role, nik FROM users WHERE username = ? LIMIT 1");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -22,21 +22,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $row = $result->fetch_assoc();
 
             if (password_verify($password, $row['password'])) {
-                // Set session
+
+                // Set session dasar
                 $_SESSION['user_id']  = $row['id'];
                 $_SESSION['username'] = $username;
                 $_SESSION['role']     = $row['role'];
 
-                // Redirect sesuai role
+                /// Jika role teknisi, ambil NIK dan set session
+                if ($row['role'] === 'teknisi') {
+
+                    $_SESSION['nik'] = $row['nik']; // <===== WAJIB ADA
+
+                    // Ambil data teknisi dari tabel teknisi
+                    $t = $conn->prepare("SELECT id, namatek FROM teknisi WHERE nik = ? LIMIT 1");
+                    $t->bind_param("s", $row['nik']);
+                    $t->execute();
+                    $resTek = $t->get_result();
+
+                    if ($resTek->num_rows === 1) {
+                        $teknisiData = $resTek->fetch_assoc();
+                        $_SESSION['teknisi_id']   = $teknisiData['id'];
+                        $_SESSION['teknisi_nama'] = $teknisiData['namatek'];
+                    } else {
+                        $_SESSION['teknisi_id'] = null;
+                        $_SESSION['teknisi_nama'] = null;
+                    }
+
+                    header("Location: pages/icons/input_material_used.php");
+                    exit();
+                }
+
+                // Jika admin, redirect dashboard
                 if ($row['role'] === 'admin') {
                     header("Location: index.php");
                     exit();
-                } elseif ($row['role'] === 'teknisi') {
-                    header("Location: pages/icons/input_material_used.php");
-                    exit();
-                } else {
-                    $message = "❌ Role tidak valid!";
                 }
+
+                $message = "❌ Role tidak valid!";
             } else {
                 $message = "❌ Password salah!";
             }
@@ -46,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

@@ -189,6 +189,7 @@ if (isset($_GET['delete_material'])) {
               <ul class="nav flex-column sub-menu">
                 <li class="nav-item"><a class="nav-link" href="../forms/input_teknisi.php">Tambah Teknisi</a></li>
                 <li class="nav-item"><a class="nav-link" href="../forms/basic_elements.php">Data Teknisi</a></li>
+                <li class="nav-item"><a class="nav-link" href="../forms/info_login.php">Info Login</a></li>
               </ul>
             </div>
           </li>
@@ -446,7 +447,7 @@ if (isset($_GET['delete_material'])) {
             SELECT m.*, t.namatek 
             FROM material_used m
             JOIN teknisi t ON m.teknisi_id = t.id
-            ORDER BY m.id ASC
+            ORDER BY m.id DESC
           ");
 
           // Siapkan array kelompok berdasarkan status
