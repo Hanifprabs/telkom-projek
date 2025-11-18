@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 22, 2025 at 05:47 AM
+-- Generation Time: Nov 18, 2025 at 10:02 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -29,7 +29,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `material_used` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
+  `user_id` bigint(20) DEFAULT NULL,
   `teknisi_id` int(11) NOT NULL,
   `wo` varchar(100) DEFAULT NULL,
   `dc` int(11) DEFAULT NULL,
@@ -40,6 +40,10 @@ CREATE TABLE `material_used` (
   `soc_option` varchar(50) DEFAULT NULL,
   `soc_value` int(11) DEFAULT NULL,
   `precont_json` text DEFAULT NULL,
+  `spliter_json` text DEFAULT NULL,
+  `smoove_json` text DEFAULT NULL,
+  `ad_sc` int(11) DEFAULT NULL,
+  `tipe_pekerjaan` varchar(50) DEFAULT NULL,
   `tiang` int(11) DEFAULT NULL,
   `tanggal` date DEFAULT NULL,
   `precont_option` int(11) DEFAULT NULL,
@@ -53,11 +57,17 @@ CREATE TABLE `material_used` (
 -- Dumping data for table `material_used`
 --
 
-INSERT INTO `material_used` (`id`, `user_id`, `teknisi_id`, `wo`, `dc`, `s_calm`, `clam_hook`, `otp`, `prekso`, `soc_option`, `soc_value`, `precont_json`, `tiang`, `tanggal`, `precont_option`, `precont_value`, `dc_foto`, `deskripsi_masalah`, `status_masalah`) VALUES
-(109, 5, 19, '2222', 0, 0, 0, 0, 0, '', 0, '{\"50\":\"\",\"75\":\"\",\"80\":\"\",\"100\":\"\",\"120\":\"\",\"135\":\"\",\"150\":\"\",\"180\":\"\"}', 0, '2025-10-21', 0, 0, 'uploads/1761018149_hologram.jpg', 'Cobaaaa', 'Sudah Dilihat'),
-(112, 5, 10, '2222999999', 2, 3, 4, 5, 3, 'Sum', 3, '{\"50\":\"4\",\"75\":\"3\",\"80\":\"1\",\"100\":\"3\",\"120\":\"7\",\"135\":\"2\",\"150\":\"1\",\"180\":\"1\"}', 1, '2025-10-21', 0, 0, 'uploads/1761019974_hologram.jpg', 'Konslett', 'Belum Dilihat'),
-(115, NULL, 10, '111111', 2, 4, 1, 2, 1, 'Sum', 12, '{\"50\":\"2\",\"75\":\"1\",\"80\":\"4\",\"100\":\"11\",\"120\":\"2\",\"135\":\"1\",\"150\":\"2\",\"180\":\"1\"}', 1, '0000-00-00', 0, 0, NULL, '', 'Belum Dilihat'),
-(116, NULL, 9, '2222', 0, 0, 0, 0, 0, '', 0, '{\"50\":\"\",\"75\":\"\",\"80\":\"\",\"100\":\"\",\"120\":\"\",\"135\":\"\",\"150\":\"\",\"180\":\"\"}', 0, '0000-00-00', 0, 0, NULL, '', 'Belum Dilihat');
+INSERT INTO `material_used` (`id`, `user_id`, `teknisi_id`, `wo`, `dc`, `s_calm`, `clam_hook`, `otp`, `prekso`, `soc_option`, `soc_value`, `precont_json`, `spliter_json`, `smoove_json`, `ad_sc`, `tipe_pekerjaan`, `tiang`, `tanggal`, `precont_option`, `precont_value`, `dc_foto`, `deskripsi_masalah`, `status_masalah`) VALUES
+(126, 5, 20, '111111', 0, 0, 0, 0, 0, NULL, 0, '[]', '[]', '[]', 0, NULL, 0, '2025-11-07', NULL, NULL, 'uploads/1762506478_Hammer.png', 'Percobaan 2', 'Sudah Dilihat'),
+(127, 5, 4, '22', 0, 0, 0, 0, 0, NULL, 0, '[]', '[]', '[]', 0, NULL, 0, '2025-11-11', NULL, NULL, 'uploads/1763451898_1000157809-removebg-preview.png', '', 'Belum Dilihat'),
+(130, NULL, 4, '2', 2, 2, 2, 2, 2, 'sum', 2, '{\"50\":\"2\",\"75\":\"2\",\"80\":\"2\",\"100\":\"2\",\"120\":\"2\",\"135\":\"2\",\"150\":\"2\",\"180\":\"2\"}', '{\"1.2\":\"2\",\"1.4\":\"2\",\"1.8\":\"2\",\"1.16\":\"2\"}', '{\"Kecil\":\"2\",\"Tipe 3\":\"2\"}', 2, 'Maintenance', 2, '2025-11-11', 0, 0, 'uploads/file_5.jpg', 'Percobaan', 'Selesai'),
+(132, NULL, 4, '22333', 2, 4, 4, 2, 4, 'fuji', 8, '{\"50\":\"4\",\"75\":\"4\",\"80\":\"2\",\"100\":\"2\",\"120\":\"2\",\"135\":\"0\",\"150\":\"0\",\"180\":\"0\"}', '{\"1.2\":\"0\",\"1.4\":\"0\",\"1.8\":\"7\",\"1.16\":\"0\"}', '{\"Kecil\":\"0\",\"Tipe 3\":\"1\"}', 2, 'Mitratel', 4, '2025-11-12', 0, 0, 'uploads/file_7.jpg', 'Percobaan berikutnya', 'Sudah Dilihat'),
+(133, 5, 9, '2222', 0, 0, 0, 0, 0, NULL, 0, '[]', '[]', '[]', 0, NULL, 0, '2025-11-17', 0, 0, 'uploads/file_8.jpg', 'Percobaan 22', 'Belum Dilihat'),
+(135, NULL, 9, '2', 3, 2, 1, 1, 0, 'sum', 0, '{\"50\":\"4\",\"75\":\"4\",\"80\":\"1\",\"100\":\"1\",\"120\":\"1\",\"135\":\"1\",\"150\":\"1\",\"180\":\"1\"}', '{\"1.2\":\"1\",\"1.4\":\"1\",\"1.8\":\"1\",\"1.16\":\"1\"}', '{\"Kecil\":\"1\",\"Tipe 3\":\"1\"}', 0, 'Mitratel', 2, '2025-11-17', 0, 0, '', '0', 'Belum Dilihat'),
+(137, NULL, 4, '222', 2, 3, 1, 2, 1, 'sum', 2, '{\"50\":\"2\",\"75\":\"2\",\"80\":\"2\",\"100\":\"2\",\"120\":\"0\",\"135\":\"2\",\"150\":\"0\",\"180\":\"0\"}', '{\"1.2\":\"0\",\"1.4\":\"0\",\"1.8\":\"0\",\"1.16\":\"0\"}', '{\"Kecil\":\"2\",\"Tipe 3\":\"1\"}', 2, 'Maintenance', 0, '2025-11-17', 0, 0, 'uploads/file_9.jpg', 'konslet', 'Selesai'),
+(140, 5, 6, '2', 0, 0, 0, 0, 0, NULL, 0, '[]', '[]', '[]', 0, NULL, 0, '2025-11-18', 0, 0, 'uploads/1763453791_Logo_FST.png', '222', 'Belum Dilihat'),
+(141, 85, 4, '2', 2, 2, 3, 1, 1, 'fuji', 2, '{\"50\":\"0\",\"75\":\"0\",\"80\":\"0\",\"100\":\"0\",\"120\":\"1\",\"135\":\"2\",\"150\":\"0\",\"180\":\"1\"}', '{\"1.2\":\"1\",\"1.4\":\"1\",\"1.8\":\"1\",\"1.16\":\"1\"}', '{\"Kecil\":\"1\",\"Tipe 3\":\"1\"}', 1, 'Maintenance', 1, '2025-11-18', 0, 0, 'uploads/file_12.jpg', 'mencobaa', 'Belum Dilihat'),
+(143, 5, 6, '222222', 2, 2, 2, 2, 1, '', 2, '{\"50\":\"2\",\"75\":\"2\",\"80\":\"2\",\"100\":\"2\",\"120\":\"2\",\"135\":\"2\",\"150\":\"2\",\"180\":\"2\"}', '{\"1.2\":\"2\",\"1.4\":\"2\",\"1.8\":\"2\",\"1.16\":\"2\"}', '{\"Kecil\":\"2\",\"Tipe 3\":\"2\"}', 2, 'Provisioning', 1, '2025-11-18', 0, 0, '', NULL, 'Belum Dilihat');
 
 -- --------------------------------------------------------
 
@@ -88,7 +98,7 @@ INSERT INTO `sessions` (`chat_id`, `step`, `teknisi_id`, `data`) VALUES
 CREATE TABLE `teknisi` (
   `id` int(11) NOT NULL,
   `namatek` varchar(255) NOT NULL,
-  `nik` int(11) DEFAULT NULL,
+  `nik` varchar(20) DEFAULT NULL,
   `sektor` varchar(255) NOT NULL,
   `mitra` varchar(255) NOT NULL,
   `idtele` varchar(255) DEFAULT NULL,
@@ -101,24 +111,24 @@ CREATE TABLE `teknisi` (
 --
 
 INSERT INTO `teknisi` (`id`, `namatek`, `nik`, `sektor`, `mitra`, `idtele`, `crew`, `valid`) VALUES
-(4, 'RANTO', 15884832, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(6, ' DONI RACHMADI', 15894099, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(7, 'DIDIK HARYONO', 15894101, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(8, 'FARISAN ILHAM GUSWANTO', 16022153, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(9, 'ADI WIRAYUDHA', 16040574, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(10, 'SUBARNO', 16750151, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(11, 'TEGUH FAJAR BAWONO', 16770264, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(12, ' FAJAR YULIANTO', 16770346, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(13, ' RAHMAT SHOLEH', 16790433, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(14, 'ENDRO DWI JAHYANTO', 16860284, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(15, 'DODIK IRAWAN', 16880115, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(16, 'PRASETYO ARI WIBOWO', 16891146, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(17, 'CANDRA HARTANTO', 16900898, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(18, 'BUDI SETIAWAN', 16932282, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(19, 'AHMAD RANTO AFANDY', 16940046, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(20, 'RASYID ANDIKA PUTRA', 16995037, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(21, 'NURROSYID WANANDI PUTRA', 16995038, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
-(35, 'JAKA FEBRIANTO', 15893898, 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N');
+(4, 'RANTO', '15884832', 'Kerten', 'PUTRA JAYA RAHARJA', '8581326564', '', 'N'),
+(6, ' DONI RACHMADI', '15894099', 'Kerten', 'PUTRA JAYA RAHARJA', '5820531737', '', 'N'),
+(7, 'DIDIK HARYONO', '15894101', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(8, 'FARISAN ILHAM GUSWANTO', '16022153', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(9, 'ADI WIRAYUDHA', '16040574', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(10, 'SUBARNO', '16750151', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(11, 'TEGUH FAJAR BAWONO', '16770264', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(12, ' FAJAR YULIANTO', '16770346', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(13, ' RAHMAT SHOLEH', '16790433', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(14, 'ENDRO DWI JAHYANTO', '16860284', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(15, 'DODIK IRAWAN', '16880115', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(16, 'PRASETYO ARI WIBOWO', '16891146', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(17, 'CANDRA HARTANTO', '16900898', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(18, 'BUDI SETIAWAN', '16932282', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(19, 'AHMAD RANTO AFANDY', '16940046', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(20, 'RASYID ANDIKA PUTRA', '16995037', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(21, 'NURROSYID WANANDI PUTRA', '16995038', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N'),
+(35, 'JAKA FEBRIANTO', '15893898', 'Kerten', 'PUTRA JAYA RAHARJA', '', '', 'N');
 
 -- --------------------------------------------------------
 
@@ -138,20 +148,23 @@ CREATE TABLE `teknisi_detail` (
   `soc_option` varchar(50) DEFAULT NULL,
   `soc_value` int(11) DEFAULT NULL,
   `precont_json` text DEFAULT NULL,
+  `spliter_json` text DEFAULT NULL,
+  `smoove_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`smoove_json`)),
   `tiang` int(11) DEFAULT NULL,
   `tanggal` date DEFAULT NULL,
   `precont_option` int(11) DEFAULT NULL,
-  `precont_value` int(11) DEFAULT NULL
+  `precont_value` int(11) DEFAULT NULL,
+  `ad_sc` int(11) DEFAULT NULL,
+  `tipe_pekerjaan` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `teknisi_detail`
 --
 
-INSERT INTO `teknisi_detail` (`id`, `teknisi_id`, `rfs`, `dc`, `s_calm`, `clam_hook`, `otp`, `prekso`, `soc_option`, `soc_value`, `precont_json`, `tiang`, `tanggal`, `precont_option`, `precont_value`) VALUES
-(31, 10, '888yyuu', 12, 19, 14, 29, 24, 'Fuji', 9, '{\"50\":\"14\",\"75\":\"\",\"80\":\"18\",\"100\":\"\",\"120\":\"\",\"135\":\"18\",\"150\":\"\",\"180\":\"\"}', 20, '2025-10-21', NULL, NULL),
-(35, 9, '2222', NULL, NULL, NULL, NULL, NULL, '', NULL, '{\"50\":\"\",\"75\":\"\",\"80\":\"\",\"100\":\"\",\"120\":\"\",\"135\":\"\",\"150\":\"\",\"180\":\"\"}', NULL, '2025-10-22', NULL, NULL),
-(37, 7, '7777', NULL, NULL, NULL, NULL, NULL, '', NULL, '{\"50\":\"\",\"75\":\"\",\"80\":\"\",\"100\":\"\",\"120\":\"\",\"135\":\"\",\"150\":\"\",\"180\":\"\"}', NULL, NULL, NULL, NULL);
+INSERT INTO `teknisi_detail` (`id`, `teknisi_id`, `rfs`, `dc`, `s_calm`, `clam_hook`, `otp`, `prekso`, `soc_option`, `soc_value`, `precont_json`, `spliter_json`, `smoove_json`, `tiang`, `tanggal`, `precont_option`, `precont_value`, `ad_sc`, `tipe_pekerjaan`) VALUES
+(56, 20, '2222', 3, 3, 3, 3, 3, 'Fuji', 3, '{\"50\":\"3\",\"75\":\"3\",\"80\":\"3\",\"100\":\"3\",\"120\":\"3\",\"135\":\"3\",\"150\":\"3\",\"180\":\"3\"}', '{\"1.2\":\"3\",\"1.4\":\"3\",\"1.8\":\"3\",\"1.16\":\"3\"}', '{\"Kecil\":\"3\",\"Tipe 3\":\"3\"}', 3, '2025-11-07', NULL, NULL, 3, 'IOAN'),
+(58, 4, '222', 4, 3, 2, 2, 2, 'Fuji', 2, '{\"50\":\"4\",\"75\":\"4\",\"80\":\"2\",\"100\":\"2\",\"120\":\"2\",\"135\":\"2\",\"150\":\"2\",\"180\":\"2\"}', '{\"1.2\":\"2\",\"1.4\":\"2\",\"1.8\":\"2\",\"1.16\":\"2\"}', '{\"Kecil\":\"2\",\"Tipe 3\":\"2\"}', 2, '2025-11-14', NULL, NULL, 2, 'Maintenance');
 
 -- --------------------------------------------------------
 
@@ -160,8 +173,9 @@ INSERT INTO `teknisi_detail` (`id`, `teknisi_id`, `rfs`, `dc`, `s_calm`, `clam_h
 --
 
 CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
+  `id` bigint(20) NOT NULL,
   `telegram_id` bigint(20) DEFAULT NULL,
+  `nik` varchar(20) DEFAULT NULL,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -176,9 +190,11 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `telegram_id`, `username`, `password`, `created_at`, `role`, `status`, `last_login`, `step`, `temp_data`) VALUES
-(5, NULL, 'admin', '$2y$10$pawRJlYb.mYxm1oGEivdfuwNp6jiMNz8RkGGi3stDssoPL0JuGmQO', '2025-09-19 08:59:23', 'admin', 'active', NULL, NULL, NULL),
-(14, 5820531737, 'RANTO', '$2y$10$ErmLl4d.eUieC7nHq59B1uWuc1A.F2ILlYK/pYC6YXUylj39dttCi', '2025-09-25 03:37:29', 'teknisi', 'inactive', '2025-10-06 10:35:40', NULL, NULL);
+INSERT INTO `users` (`id`, `telegram_id`, `nik`, `username`, `password`, `created_at`, `role`, `status`, `last_login`, `step`, `temp_data`) VALUES
+(5, NULL, NULL, 'admin', '$2y$10$pawRJlYb.mYxm1oGEivdfuwNp6jiMNz8RkGGi3stDssoPL0JuGmQO', '2025-09-19 08:59:23', 'admin', 'active', NULL, NULL, NULL),
+(37, 5820531737, '15894099', 'DONI', '$2y$10$PWJhZh.lAGlDFNI8CoyhSu34RC8ZiiR7fvTTnky3pZ.0eA3OJOLmq', '2025-11-17 01:53:09', 'teknisi', 'active', '2025-11-18 15:52:03', NULL, NULL),
+(85, 8581326564, '15884832', 'RANTO', '$2y$10$kMTXwb.oJjO4oTJlfD0MSOESLnaVpmhsM/6nijsaxBNAaNCKfkFGu', '2025-11-17 08:54:21', 'teknisi', 'inactive', '2025-11-18 15:14:08', 'login', NULL),
+(91, NULL, '16932282', 'BUDI', '$2y$10$22o5HHUxblfLkhacr0utNOPxL1c7HA4MVV6YJqkwgaJHZpksphXjq', '2025-11-18 06:44:01', 'teknisi', 'active', NULL, NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -217,7 +233,11 @@ ALTER TABLE `teknisi_detail`
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `telegram_id` (`telegram_id`);
+  ADD UNIQUE KEY `unique_username` (`username`),
+  ADD UNIQUE KEY `telegram_id` (`telegram_id`),
+  ADD UNIQUE KEY `telegram_id_2` (`telegram_id`),
+  ADD UNIQUE KEY `telegram_id_3` (`telegram_id`),
+  ADD UNIQUE KEY `unique_nik` (`nik`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -227,25 +247,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `material_used`
 --
 ALTER TABLE `material_used`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=144;
 
 --
 -- AUTO_INCREMENT for table `teknisi`
 --
 ALTER TABLE `teknisi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `teknisi_detail`
 --
 ALTER TABLE `teknisi_detail`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
 
 --
 -- Constraints for dumped tables
@@ -255,7 +275,7 @@ ALTER TABLE `users`
 -- Constraints for table `material_used`
 --
 ALTER TABLE `material_used`
-  ADD CONSTRAINT `fk_user_material` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `fk_user_material` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `material_used_ibfk_1` FOREIGN KEY (`teknisi_id`) REFERENCES `teknisi` (`id`) ON DELETE CASCADE;
 
 --
